@@ -1,0 +1,41 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	modified:   .DS_Store
+#	modified:   code_generation/.DS_Store
+#	new file:   code_generation/v1/.DS_Store
+#	new file:   code_generation/v1/OROCOS/%SUBMODEL_NAME%.cpp
+#	new file:   code_generation/v1/OROCOS/%SUBMODEL_NAME%.h
+#	new file:   code_generation/v1/OROCOS/%SUBMODEL_NAME%_tokens.xml
+#	new file:   code_generation/v1/OROCOS/Targets.ini
+#	new file:   code_generation/v1/OROCOS/common/EulerAngles.cpp
+#	new file:   code_generation/v1/OROCOS/common/EulerAngles.h
+#	new file:   code_generation/v1/OROCOS/common/MotionProfiles.cpp
+#	new file:   code_generation/v1/OROCOS/common/MotionProfiles.h
+#	new file:   code_generation/v1/OROCOS/common/xxfuncs.cpp
+#	new file:   code_generation/v1/OROCOS/common/xxfuncs.h
+#	new file:   code_generation/v1/OROCOS/common/xxinteg.cpp
+#	new file:   code_generation/v1/OROCOS/common/xxinteg.h
+#	new file:   code_generation/v1/OROCOS/common/xxinverse.cpp
+#	new file:   code_generation/v1/OROCOS/common/xxinverse.h
+#	new file:   code_generation/v1/OROCOS/common/xxmatrix.cpp
+#	new file:   code_generation/v1/OROCOS/common/xxmatrix.h
+#	new file:   code_generation/v1/OROCOS/common/xxmodel.h
+#	new file:   code_generation/v1/OROCOS/common/xxtypes.h
+#	new file:   code_generation/v1/OROCOS/orocos.png
+#	new file:   code_generation/v1/OROCOS/orocos.png:Zone.Identifier:$DATA
+#	new file:   code_generation/v1/OROCOS/readme.txt
+#	new file:   code_generation/v1/OROCOS/test_%SUBMODEL_NAME%.cpp
+#
+# Changes not staged for commit:
+#   (use "git add/rm <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	deleted:    -m
+#
+
+This is a first version of the orocos folder that should be used as a template for 20-sim code generation. 
