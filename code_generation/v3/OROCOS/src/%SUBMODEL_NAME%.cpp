@@ -27,21 +27,37 @@ using namespace RTT;
 using namespace std;
 
 	/* this PRIVATE function sets the input variables from the input vector */
-void %SUBMODEL_NAME%::CopyInputsToVariables (XXDouble *u)
+void %SUBMODEL_NAME%::CopyInputsToVariables ()
 {
-        /* copy the input vector to the input variables
-         -- OROCOS Entry
-         * Which input to which variable ??? */
-%INPUT_TO_VARIABLE_EQUATIONS%
+        /* OROCOS Entry to copy port to input array */
+        XXDouble u [%NUMBER_INPUTS% + 1];
+        double val = 0.0;
+
+        for (int i=0;i<%NUMBER_INPUTS%;i++ )
+        {
+            if ( %VARPREFIX%Input[i].read(val) != RTT::NoData ) {
+                u[i] = val;
+            }
+        }
+
+        /* copy the input vector to the input variables */
+        %INPUT_TO_VARIABLE_EQUATIONS%
 }
 
 /* this PRIVATE function uses the output variables to fill the output vector */
-void %SUBMODEL_NAME%::CopyVariablesToOutputs (XXDouble *y)
+void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 {
-        /* copy the output variables to the output vector
-        -- OROCOS Entry
-        * which varible to which output */
-%VARIABLE_TO_OUTPUT_EQUATIONS%
+
+        XXDouble y [%NUMBER_OUTPUTS% + 1];
+
+        /* copy the output variables to the output vector */
+        %VARIABLE_TO_OUTPUT_EQUATIONS%
+
+        /* OROCOS Entry to copy output to port */
+        for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
+        {
+            %VARPREFIX%Output[i].write(y[i]);
+        }
 }
 
 %SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name)
@@ -141,11 +157,11 @@ bool %SUBMODEL_NAME%::startHook()
 	/* calculate initial and static equations */
 	CalculateInitial ();
 	CalculateStatic ();
-        CopyInputsToVariables (u);
+        CopyInputsToVariables ();
         CalculateInput ();
         CalculateDynamic();
         CalculateOutput ();
-        CopyVariablesToOutputs (y);
+        CopyVariablesToOutputs ();
         return true;
 }
 
@@ -157,24 +173,24 @@ void %SUBMODEL_NAME%::updateHook ()
         CalculateStatic ();
 
         /* main calculation of the model */
-        CopyInputsToVariables (u);        //get input from port
+        CopyInputsToVariables ();        //get input from port
         CalculateInput ();
         myintegmethod.Step();
         CalculateOutput ();
-        CopyVariablesToOutputs (y);       //send output to port
+        CopyVariablesToOutputs ();       //send output to port
 }
 
 /* the termination function for submodel */
 void %SUBMODEL_NAME%::stopHook()
 {
 	/* copy the inputs */
-        CopyInputsToVariables (u);       //get inputs from port
+        CopyInputsToVariables ();       //get inputs from port
 
 	/* calculate the final model equations */
 	CalculateFinal ();
 
 	/* set the outputs */
-        CopyVariablesToOutputs (y);     //send output to port
+        CopyVariablesToOutputs ();     //send output to port
 }
 
 
@@ -183,7 +199,7 @@ void %SUBMODEL_NAME%::stopHook()
  */
 void %SUBMODEL_NAME%::CalculateInitial (void)
 {
-%INITIAL_EQUATIONS%
+    %INITIAL_EQUATIONS%
 }
 
 /* This function calculates the static equations of the model.
@@ -191,7 +207,7 @@ void %SUBMODEL_NAME%::CalculateInitial (void)
  */
 void %SUBMODEL_NAME%::CalculateStatic (void)
 {
-%STATIC_EQUATIONS%
+    %STATIC_EQUATIONS%
 }
 
 /* This function calculates the input equations of the model.
@@ -200,7 +216,7 @@ void %SUBMODEL_NAME%::CalculateStatic (void)
  */
 void %SUBMODEL_NAME%::CalculateInput (void)
 {
-%INPUT_EQUATIONS%
+    %INPUT_EQUATIONS%
 }
 
 /* This function calculates the dynamic equations of the model.
@@ -209,7 +225,7 @@ void %SUBMODEL_NAME%::CalculateInput (void)
  */
 void %SUBMODEL_NAME%::CalculateDynamic (void)
 {
-%DYNAMIC_EQUATIONS%
+    %DYNAMIC_EQUATIONS%
 }
 
 /* This function calculates the output equations of the model.
@@ -220,11 +236,11 @@ void %SUBMODEL_NAME%::CalculateDynamic (void)
  */
 void %SUBMODEL_NAME%::CalculateOutput (void)
 {
-%OUTPUT_EQUATIONS%
-%IF%%XX_NR_DELAY_FUNCS%
+    %OUTPUT_EQUATIONS%
+    %IF%%XX_NR_DELAY_FUNCS%
 	/* delay update */
 	XXDelayUpdate();
-%ENDIF%
+    %ENDIF%
 }
 
 /* This function calculates the final equations of the model.
@@ -233,6 +249,6 @@ void %SUBMODEL_NAME%::CalculateOutput (void)
  */
 void %SUBMODEL_NAME%::CalculateFinal (void)
 {
-%FINAL_EQUATIONS%
+    %FINAL_EQUATIONS%
 }
 

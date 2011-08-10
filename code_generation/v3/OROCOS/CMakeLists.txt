@@ -20,12 +20,12 @@ LINK_LIBRARIES(orocos-rtt-${Target})
 
 
 #Header and Source files used in the component
-SET(HEADER  include/xxfuncs.h include/xxinteg.h   include/xxmatrix.h
-            include/xxinverse.h include/xxmodel.h include/MotionProfiles.h
-            include/EulerAngles.h include/%SUBMODEL_NAME%.h include/xxtypes.h)
-SET(SOURCE  src/xxfuncs.cpp src/xxinteg.cpp src/xxinverse.cpp
-            src/xxmatrix.cpp src/EulerAngles.cpp src/MotionProfiles.cpp
-            src/%SUBMODEL_NAME%.cpp test_%SUBMODEL_NAME%.cpp)
+SET(HEADER  include/xxfuncs.h   include/xxinteg.h   include/tinyxml.h   include/xxmatrix.h
+            include/xxinverse.h include/xxmodel.h   include/MotionProfiles.h    include/tinystr.h
+            include/EulerAngles.h  include/xxtypes.h include/%SUBMODEL_NAME%.h)
+SET(SOURCE  src/xxfuncs.cpp src/xxinteg.cpp src/xxinverse.cpp   src/tinyxml.cpp src/tinystr.cpp
+            src/xxmatrix.cpp src/EulerAngles.cpp src/MotionProfiles.cpp src/tinyxmlerror.cpp
+            src/tinyxmlparser.cpp   src/%SUBMODEL_NAME%.cpp test_%SUBMODEL_NAME%.cpp)
 
 #Executable component and can also be a library usable for orocos deployment
 # use ADD_LIBRARY(%SUBMODEL_NAME% SHARED %SUBMODEL_NAME%.cpp)
