@@ -29,14 +29,18 @@
 /* Orocos include file */
 #include <rtt/os/main.h>
 #include <rtt/RTT.hpp>
+#include <rtt/Logger.hpp>
+#include <ocl/TaskBrowser.hpp>
 
 using namespace Orocos;
 using namespace RTT;
 using namespace std;
 
 /* the main function */
-int main()
+int ORO_main(int argc, char** argv)
 {
+        Logger::In in("main()");
+
         %SUBMODEL_NAME% my20simSubmodel;
 
         /* initialize the submodel */
@@ -44,6 +48,10 @@ int main()
 
         /* start the submodel */
         my20simSubmodel.start();
+
+        TaskBrowser browser(&my20simSubmodel);
+
+        browser.loop();
 
 	return 0;
 }

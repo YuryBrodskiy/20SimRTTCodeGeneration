@@ -29,10 +29,11 @@
 #define %SUBMODEL_NAME%_H
 
 /* OROCOS include files */
-#include "rtt/TaskContext.hpp"
-#include "rtt/Logger.hpp"
-#include "rtt/Port.hpp"
-#include "rtt/Activity.hpp"
+#include <rtt/TaskContext.hpp>
+#include <rtt/Logger.hpp>
+#include <rtt/Port.hpp>
+#include <rtt/Activity.hpp>
+#include <rtt/RTT.hpp>
 #include <string>
 #include <vector>
 
@@ -135,14 +136,14 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * This private function copies the input variables from the input vector
 		 * @param u	This is the array with all input signals for this submodel
 		 */
-		void CopyInputsToVariables (XXDouble *u);
+                void CopyInputsToVariables ();
 
 		/**
 		 * CopyVariablesToOutputs
 		 * This private function copies the output variables to the output vector
 		 * @param y	This is the array with all output signals from this submodel
 		 */
-		void CopyVariablesToOutputs (XXDouble *y);
+                void CopyVariablesToOutputs ();
 
 		%INTEGRATION_METHOD_NAME% myintegmethod;	///< pointer to the integration method for this submodel
 
@@ -150,8 +151,8 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
                  * OROCOS Ports for input and ouput
                  */
 
-                RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS%];
-                RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS%];
+                RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
+                RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
 
 };
 

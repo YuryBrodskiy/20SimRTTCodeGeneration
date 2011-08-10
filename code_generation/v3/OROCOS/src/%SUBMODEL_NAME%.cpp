@@ -88,6 +88,8 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	%VARPREFIX%%XX_UNNAMED_ARRAY_NAME% = new XXDouble[%NUMBER_UNNAMED% + 1];		/* unnamed */
 	%VARPREFIX%workarray = new XXDouble[%WORK_ARRAY_SIZE% + 1];
 
+        myintegmethod.Initialize(this);
+
 	state = initialrun;
 
         /*orocos entry
@@ -98,11 +100,11 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
         string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
         for (int i=0;i<%NUMBER_INPUTS%;i++ )
         {
-            this->ports->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
+            this->ports()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
         }
         for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
         {
-            this->ports->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
+            this->ports()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
         }
 }
 

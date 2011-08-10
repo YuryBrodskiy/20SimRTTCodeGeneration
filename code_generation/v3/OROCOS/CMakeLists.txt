@@ -10,13 +10,21 @@ ADD_DEFINITIONS(-DOROCOS_TARGET=${Target})
 INCLUDE_DIRECTORIES(include
                     ${OROCOS_INSTALL_DIR}/include
                     ${OROCOS_INSTALL_DIR}/include/orocos)
+IF(Target MATCHES xenomai)
+    INCLUDE_DIRECTORIES(/usr/xenomai/include)
+ENDIF(Target MATCHES xenomai)
 
 #Add link directories for libraries
 LINK_DIRECTORIES(${OROCOS_INSTALL_DIR}/lib)
+IF(Target MATCHES xenomai)
+    LINK_DIRECTORIES(/usr/xenomai/lib)
+    LINK_LIBRARIES(native)
+ENDIF(Target MATCHES xenomai)
 
 #Add necessary libraries
 #Other libraries can be orocos-ocl-taskbrowser-${Target}
 LINK_LIBRARIES(orocos-rtt-${Target})
+LINK_LIBRARIES(orocos-ocl-taskbrowser-${Target})
 
 
 #Header and Source files used in the component
