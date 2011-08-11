@@ -22,25 +22,45 @@ directory. The following files from the template are generated for in this targe
 Target files
 ========
 readme.txt
-	this file
+CMakeLists.txt
 
-%SUBMODEL_NAME%._mdl
-	Simulink submodel that call the generated S-function
+Headers -> in include directory
+    %SUBMODEL_NAME%.h 
+    xxmodel.h
+    xxtypes.h
+    xxinteg.h
+    xxfuncs.h
+    xxmatrix.h
+    xxinverse.h
+    EulerAngles.h
+    MotionProfiles.h
+    tinystr.h
+    tinyxml.h
 
-%SUBMODEL_NAME%.c
-	the Simulink S-function that calls the model
+Sources -> in src directory
+    %SUBMODEL_NAME%.cpp 
+    xxinteg.cpp
+    xxfuncs.cpp		
+    xxmatrix.cpp
+    xxinverse.cpp
+    EulerAngles.cpp
+    MotionProfiles.cpp
+    tinystr.cpp
+    tinyxml.cpp
+    tinyxmlerror.cpp
+    tinyxmlparser.cpp
 
-xxmodel.h
-xxmodel.c
-	the actual model code (the equations of the selected 20-sim model)
+miscellaneous -> in misc directory
+    %SUBMODEL_NAME%_tokens.xml
+    %SUBMODEL_NAME%.h_config_tokens.xml
 
-xxtypes.h
-xxmexfcs.h
-xxmexfcs.c		
-	some types and functions that are not part of standard ANSI-C libraries
 
-xxmatrix.h
-xxmatrix.c
-xxinverse.c
-	complete ANSI-C matrix library for vectors or matrices that are used in the model
+
+How to use
+========
+
+1. Check the orocos target and installation directory in 'CMakeLists.txt'
+2. Check the %VARPREFIX%step_size in the constructor as it might be too low during simulation
+3. Build using cmake and test the component
+ 
 

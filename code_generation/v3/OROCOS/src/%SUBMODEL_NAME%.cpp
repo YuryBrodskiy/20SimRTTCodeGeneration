@@ -149,7 +149,7 @@ bool %SUBMODEL_NAME%::configureHook()
 
         /* ---------OROCOS Entry----
          * set priority and period */
-        this->setActivity(new Activity( 2, %TIME_STEP_SIZE% ));
+        this->setActivity(new Activity( 2, %VARPREFIX%step_size ));
         return true;
 }
 
