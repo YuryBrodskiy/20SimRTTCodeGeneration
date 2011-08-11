@@ -290,7 +290,7 @@ void %SUBMODEL_NAME%::initProperty()
                  parName = name;
                  parDiscription = disc;
                  parIndex = atoi(index);
-                 this->addProperty(parName,xx_P[parIndex]).doc(parDiscription);
+                 this->addProperty(parName,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(parDiscription);
              }
         }
     }
