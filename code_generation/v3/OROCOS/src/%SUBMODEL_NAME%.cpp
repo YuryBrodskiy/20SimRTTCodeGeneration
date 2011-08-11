@@ -92,9 +92,11 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 	state = initialrun;
 
-        /*orocos entry
-         *could be automated with a token %INITIALIZE_OROCOS_PORTS% with
-         *output text this->ports()->addPort ... */
+        /*------------------orocos entry------------------------------
+         * initialize properties
+         * add input output ports */
+
+        initProperty();
 
         string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
         string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
@@ -145,7 +147,7 @@ bool %SUBMODEL_NAME%::configureHook()
         /* end of initialization phase */
         %VARPREFIX%initialize = false;
 
-        /* OROCOS Entry
+        /* ---------OROCOS Entry----
          * set priority and period */
         this->setActivity(new Activity( 2, %TIME_STEP_SIZE% ));
         return true;
@@ -254,3 +256,43 @@ void %SUBMODEL_NAME%::CalculateFinal (void)
     %FINAL_EQUATIONS%
 }
 
+/* This function uses tinyxml to parse model configuration xml file.
+ * Then paramters are selected and added as a property to the orocos
+ * component. These properties can be updated at runtime
+ */
+void %SUBMODEL_NAME%::initProperty()
+{
+    TiXmlDocument doc("../misc/%SUBMODEL_NAME%_config_tokens.xml");
+    doc.LoadFile();
+    TiXmlHandle hdoc(&doc);
+    TiXmlElement* pElem;
+    TiXmlHandle hRoot(0);
+    string chkPar;
+    string parName;
+    string parDiscription;
+    int parIndex;
+    const char * lbl;
+
+    hRoot=TiXmlHandle(hdoc.FirstChildElement().Element());
+    pElem = hRoot.FirstChild("modelVariables").FirstChild().Element();
+
+    if(pElem)
+    {
+        for(pElem;pElem;pElem=pElem->NextSiblingElement())
+        {
+            lbl = pElem->FirstChild("kind")->ToElement()->GetText();
+            chkPar = lbl;
+            if(chkPar == "parameter")
+             {
+                 const char * name = pElem->FirstChild("name")->ToElement()->GetText();
+                 const char * disc = pElem->FirstChild("description")->ToElement()->GetText();
+                 const char * index = pElem->FirstChild("storage")->FirstChild("index")->ToElement()->GetText();
+                 parName = name;
+                 parDiscription = disc;
+                 parIndex = atoi(index);
+                 this->addProperty(parName,xx_P[parIndex]).doc(parDiscription);
+             }
+        }
+    }
+    return;
+}

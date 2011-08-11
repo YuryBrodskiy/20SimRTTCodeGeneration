@@ -28,6 +28,9 @@
 #ifndef %SUBMODEL_NAME%_H
 #define %SUBMODEL_NAME%_H
 
+/* parameter parsing include */
+#include "tinyxml.h"
+
 /* OROCOS include files */
 #include <rtt/TaskContext.hpp>
 #include <rtt/Logger.hpp>
@@ -144,6 +147,13 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * @param y	This is the array with all output signals from this submodel
 		 */
                 void CopyVariablesToOutputs ();
+
+                /**
+                 * initProperty()
+                 * This function checkes a generated xml file and defines orocos property.
+                 * These properties can then be changed at run time or by using configuration file
+                 */
+                void initProperty(void);
 
 		%INTEGRATION_METHOD_NAME% myintegmethod;	///< pointer to the integration method for this submodel
 
