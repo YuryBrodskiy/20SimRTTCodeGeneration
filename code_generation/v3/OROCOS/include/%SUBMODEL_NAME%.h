@@ -48,17 +48,17 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		/**
 		 * %SUBMODEL_NAME% constructor
 		 */
-                %SUBMODEL_NAME%(string name = "my%SUBMODEL_NAME%");
+		%SUBMODEL_NAME%(string name = "my%SUBMODEL_NAME%");
 
 		/**
 		 * %SUBMODEL_NAME% destructor
 		 */
 		virtual ~%SUBMODEL_NAME%(void);
 
-                /**
-                 * %SUBMODEL_NAME% configuration code and returns false if startup fails
-                */
-                bool configureHook ();
+		/**
+		 * %SUBMODEL_NAME% configuration code and returns false if startup fails
+		*/
+		bool configureHook ();
 
 		/**
 		 * %SUBMODEL_NAME% startUp code and returns false if startup fails 
@@ -139,30 +139,30 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * This private function copies the input variables from the input vector
 		 * @param u	This is the array with all input signals for this submodel
 		 */
-                void CopyInputsToVariables ();
+		void CopyInputsToVariables ();
 
 		/**
 		 * CopyVariablesToOutputs
 		 * This private function copies the output variables to the output vector
 		 * @param y	This is the array with all output signals from this submodel
 		 */
-                void CopyVariablesToOutputs ();
+		void CopyVariablesToOutputs ();
 
-                /**
-                 * initProperty()
-                 * This function checkes a generated xml file and defines orocos property.
-                 * These properties can then be changed at run time or by using configuration file
-                 */
-                void initProperty(void);
+		/**
+		 * initProperty()
+		 * This function checkes a generated xml file and defines orocos property.
+		 * These properties can then be changed at run time or by using configuration file
+		 */
+		void initProperty(void);
 
 		%INTEGRATION_METHOD_NAME% myintegmethod;	///< pointer to the integration method for this submodel
 
-                /**
-                 * OROCOS Ports for input and ouput
-                 */
+		/**
+		 * OROCOS Ports for input and ouput
+		 */
 
-                RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
-                RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
+		RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
+		RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
 
 };
 

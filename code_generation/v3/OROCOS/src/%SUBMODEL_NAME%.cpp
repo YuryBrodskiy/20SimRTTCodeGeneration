@@ -29,35 +29,34 @@ using namespace std;
 	/* this PRIVATE function sets the input variables from the input vector */
 void %SUBMODEL_NAME%::CopyInputsToVariables ()
 {
-        /* OROCOS Entry to copy port to input array */
-        XXDouble u [%NUMBER_INPUTS% + 1];
-        double val = 0.0;
+	/* OROCOS Entry to copy port to input array */
+	XXDouble u [%NUMBER_INPUTS% + 1];
+	double val = 0.0;
 
-        for (int i=0;i<%NUMBER_INPUTS%;i++ )
-        {
-            if ( %VARPREFIX%Input[i].read(val) != RTT::NoData ) {
-                u[i] = val;
-            }
-        }
+	for (int i=0;i<%NUMBER_INPUTS%;i++ )
+	{
+		  if ( %VARPREFIX%Input[i].read(val) != RTT::NoData ) {
+		      u[i] = val;
+		  }
+	}
 
-        /* copy the input vector to the input variables */
-        %INPUT_TO_VARIABLE_EQUATIONS%
+	/* copy the input vector to the input variables */
+	%INPUT_TO_VARIABLE_EQUATIONS%
 }
 
 /* this PRIVATE function uses the output variables to fill the output vector */
 void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 {
+	XXDouble y [%NUMBER_OUTPUTS% + 1];
 
-        XXDouble y [%NUMBER_OUTPUTS% + 1];
+	/* copy the output variables to the output vector */
+	%VARIABLE_TO_OUTPUT_EQUATIONS%
 
-        /* copy the output variables to the output vector */
-        %VARIABLE_TO_OUTPUT_EQUATIONS%
-
-        /* OROCOS Entry to copy output to port */
-        for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
-        {
-            %VARPREFIX%Output[i].write(y[i]);
-        }
+	/* OROCOS Entry to copy output to port */
+	for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
+	{
+		  %VARPREFIX%Output[i].write(y[i]);
+	}
 }
 
 %SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name)
@@ -88,26 +87,28 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	%VARPREFIX%%XX_UNNAMED_ARRAY_NAME% = new XXDouble[%NUMBER_UNNAMED% + 1];		/* unnamed */
 	%VARPREFIX%workarray = new XXDouble[%WORK_ARRAY_SIZE% + 1];
 
-        myintegmethod.Initialize(this);
+  myintegmethod.Initialize(this);
 
 	state = initialrun;
 
-        /*------------------orocos entry------------------------------
-         * initialize properties
-         * add input output ports */
+	/*------------------orocos entry------------------------------
+	 * initialize properties
+	 * add input output ports */
 
-        initProperty();
+	initProperty();
 
-        string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
-        string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
-        for (int i=0;i<%NUMBER_INPUTS%;i++ )
-        {
-            this->ports()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
-        }
-        for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
-        {
-            this->ports()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
-        }
+	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
+	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
+
+	for (int i=0;i<%NUMBER_INPUTS%;i++ )
+	{
+		  this->ports()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
+	}
+
+	for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
+	{
+		  this->ports()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
+	}
 }
 
 %SUBMODEL_NAME%::~%SUBMODEL_NAME%(void)
@@ -126,47 +127,46 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 bool %SUBMODEL_NAME%::configureHook()
 {
-        /* initialization phase (allocating memory) */
-        %VARPREFIX%initialize = true;
+	/* initialization phase (allocating memory) */
+	%VARPREFIX%initialize = true;
 
-        /* copy the inputs */
-        //%VARPREFIX%%XX_TIME% = t;
+	/* copy the inputs */
+	//%VARPREFIX%%XX_TIME% = t;
 
-        /* set the constants */
-        %INITIALIZE_CONSTANTS%
+	/* set the constants */
+	%INITIALIZE_CONSTANTS%
 
-        /* set the parameters */
-        %INITIALIZE_PARAMETERS%
+	/* set the parameters */
+	%INITIALIZE_PARAMETERS%
 
-        /* set the states */
-        %INITIALIZE_STATES%
+	/* set the states */
+	%INITIALIZE_STATES%
 
-        /* set the matrices */
-        %INITIALIZE_MATRICES%
+	/* set the matrices */
+	%INITIALIZE_MATRICES%
 
-        /* end of initialization phase */
-        %VARPREFIX%initialize = false;
+	/* end of initialization phase */
+	%VARPREFIX%initialize = false;
 
-        /* ---------OROCOS Entry----
-         * set priority and period */
-        this->setActivity(new Activity( 2, %VARPREFIX%step_size ));
-        return true;
+	/* ---------OROCOS Entry----
+	 * set priority and period */
+	this->setActivity(new Activity( 2, %VARPREFIX%step_size ));
+	return true;
 }
 
 
 /* the initialization function for submodel */
 bool %SUBMODEL_NAME%::startHook()
 {
-
 	/* calculate initial and static equations */
 	CalculateInitial ();
 	CalculateStatic ();
-        CopyInputsToVariables ();
-        CalculateInput ();
-        CalculateDynamic();
-        CalculateOutput ();
-        CopyVariablesToOutputs ();
-        return true;
+  CopyInputsToVariables ();
+  CalculateInput ();
+  CalculateDynamic();
+  CalculateOutput ();
+  CopyVariablesToOutputs ();
+  return true;
 }
 
 /* the function that calculates the submodel */
@@ -174,27 +174,27 @@ void %SUBMODEL_NAME%::updateHook ()
 {
 	/* another precessor submodel could determine the parameters of this submodel
 	   and therefore the static parameter calculations need to be performed. */
-        CalculateStatic ();
+  CalculateStatic ();
 
-        /* main calculation of the model */
-        CopyInputsToVariables ();        //get input from port
-        CalculateInput ();
-        myintegmethod.Step();
-        CalculateOutput ();
-        CopyVariablesToOutputs ();       //send output to port
+  /* main calculation of the model */
+  CopyInputsToVariables ();        //get input from port
+  CalculateInput ();
+  myintegmethod.Step();
+  CalculateOutput ();
+  CopyVariablesToOutputs ();       //send output to port
 }
 
 /* the termination function for submodel */
 void %SUBMODEL_NAME%::stopHook()
 {
 	/* copy the inputs */
-        CopyInputsToVariables ();       //get inputs from port
+	CopyInputsToVariables ();       //get inputs from port
 
 	/* calculate the final model equations */
 	CalculateFinal ();
 
 	/* set the outputs */
-        CopyVariablesToOutputs ();     //send output to port
+  CopyVariablesToOutputs ();     //send output to port
 }
 
 
@@ -203,7 +203,7 @@ void %SUBMODEL_NAME%::stopHook()
  */
 void %SUBMODEL_NAME%::CalculateInitial (void)
 {
-    %INITIAL_EQUATIONS%
+  %INITIAL_EQUATIONS%
 }
 
 /* This function calculates the static equations of the model.
@@ -211,7 +211,7 @@ void %SUBMODEL_NAME%::CalculateInitial (void)
  */
 void %SUBMODEL_NAME%::CalculateStatic (void)
 {
-    %STATIC_EQUATIONS%
+  %STATIC_EQUATIONS%
 }
 
 /* This function calculates the input equations of the model.
@@ -220,7 +220,7 @@ void %SUBMODEL_NAME%::CalculateStatic (void)
  */
 void %SUBMODEL_NAME%::CalculateInput (void)
 {
-    %INPUT_EQUATIONS%
+  %INPUT_EQUATIONS%
 }
 
 /* This function calculates the dynamic equations of the model.
@@ -229,7 +229,7 @@ void %SUBMODEL_NAME%::CalculateInput (void)
  */
 void %SUBMODEL_NAME%::CalculateDynamic (void)
 {
-    %DYNAMIC_EQUATIONS%
+  %DYNAMIC_EQUATIONS%
 }
 
 /* This function calculates the output equations of the model.
@@ -240,11 +240,11 @@ void %SUBMODEL_NAME%::CalculateDynamic (void)
  */
 void %SUBMODEL_NAME%::CalculateOutput (void)
 {
-    %OUTPUT_EQUATIONS%
-    %IF%%XX_NR_DELAY_FUNCS%
+  %OUTPUT_EQUATIONS%
+  %IF%%XX_NR_DELAY_FUNCS%
 	/* delay update */
 	XXDelayUpdate();
-    %ENDIF%
+  %ENDIF%
 }
 
 /* This function calculates the final equations of the model.
@@ -253,7 +253,7 @@ void %SUBMODEL_NAME%::CalculateOutput (void)
  */
 void %SUBMODEL_NAME%::CalculateFinal (void)
 {
-    %FINAL_EQUATIONS%
+  %FINAL_EQUATIONS%
 }
 
 /* This function uses tinyxml to parse model configuration xml file.
@@ -262,37 +262,40 @@ void %SUBMODEL_NAME%::CalculateFinal (void)
  */
 void %SUBMODEL_NAME%::initProperty()
 {
-    TiXmlDocument doc("../misc/%SUBMODEL_NAME%_config_tokens.xml");
-    doc.LoadFile();
-    TiXmlHandle hdoc(&doc);
-    TiXmlElement* pElem;
-    TiXmlHandle hRoot(0);
-    string chkPar;
-    string parName;
-    string parDiscription;
-    int parIndex;
-    const char * lbl;
+	TiXmlDocument doc("../misc/%SUBMODEL_NAME%_config_tokens.xml");
+	if(! doc.LoadFile() )
+	{
+		log(Info) << "File not found: misc/%SUBMODEL_NAME%_config_tokens.xml" << endlog();
+	}
+	TiXmlHandle hdoc(&doc);
+	TiXmlElement* pElem;
+	TiXmlHandle hRoot(0);
+	string chkPar;
+	string parName;
+	string parDiscription;
+	int parIndex;
+	const char * lbl;
 
-    hRoot=TiXmlHandle(hdoc.FirstChildElement().Element());
-    pElem = hRoot.FirstChild("modelVariables").FirstChild().Element();
+	hRoot=TiXmlHandle(hdoc.FirstChildElement().Element());
+	pElem = hRoot.FirstChild("modelVariables").FirstChild().Element();
 
-    if(pElem)
-    {
-        for(pElem;pElem;pElem=pElem->NextSiblingElement())
-        {
-            lbl = pElem->FirstChild("kind")->ToElement()->GetText();
-            chkPar = lbl;
-            if(chkPar == "parameter")
-             {
-                 const char * name = pElem->FirstChild("name")->ToElement()->GetText();
-                 const char * disc = pElem->FirstChild("description")->ToElement()->GetText();
-                 const char * index = pElem->FirstChild("storage")->FirstChild("index")->ToElement()->GetText();
-                 parName = name;
-                 parDiscription = disc;
-                 parIndex = atoi(index);
-                 this->addProperty(parName,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(parDiscription);
-             }
-        }
-    }
-    return;
+	if(pElem)
+	{
+	  for(pElem;pElem;pElem=pElem->NextSiblingElement())
+	  {
+      lbl = pElem->FirstChild("kind")->ToElement()->GetText();
+      chkPar = lbl;
+      if(chkPar == "parameter")
+			{
+				const char * name = pElem->FirstChild("name")->ToElement()->GetText();
+				const char * disc = pElem->FirstChild("description")->ToElement()->GetText();
+				const char * index = pElem->FirstChild("storage")->FirstChild("index")->ToElement()->GetText();
+				parName = name;
+				parDiscription = disc;
+				parIndex = atoi(index);
+				this->addProperty(parName,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(parDiscription);
+			}
+	  }
+	}
+	return;
 }
