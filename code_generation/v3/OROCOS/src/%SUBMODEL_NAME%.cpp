@@ -27,13 +27,13 @@ using namespace RTT;
 using namespace std;
 
 	/* this PRIVATE function sets the input variables from the input vector */
+	//@todo Improve for multiple component inputs to have a synchronized execution.
 void %SUBMODEL_NAME%::CopyInputsToVariables ()
 {
 	/* OROCOS Entry to copy port to input array */
-	XXDouble u [%NUMBER_INPUTS% + 1];
 	double val = 0.0;
 
-	for (int i=0;i<%NUMBER_INPUTS%;i++ )
+	for (int i=0;i<%NUMBER_INPUTS%; ++i)
 	{
 		  if ( %VARPREFIX%Input[i].read(val) != RTT::NoData ) {
 		      u[i] = val;
@@ -47,19 +47,17 @@ void %SUBMODEL_NAME%::CopyInputsToVariables ()
 /* this PRIVATE function uses the output variables to fill the output vector */
 void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 {
-	XXDouble y [%NUMBER_OUTPUTS% + 1];
-
 	/* copy the output variables to the output vector */
 	%VARIABLE_TO_OUTPUT_EQUATIONS%
 
 	/* OROCOS Entry to copy output to port */
-	for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
+	for (int i=0;i<%NUMBER_OUTPUTS%; ++i)
 	{
 		  %VARPREFIX%Output[i].write(y[i]);
 	}
 }
 
-%SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name)
+%SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name, PreOperational)
 {
 	%VARPREFIX%start_time = %START_TIME%;
 	%VARPREFIX%finish_time = %FINISH_TIME%;
@@ -87,7 +85,7 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	%VARPREFIX%%XX_UNNAMED_ARRAY_NAME% = new XXDouble[%NUMBER_UNNAMED% + 1];		/* unnamed */
 	%VARPREFIX%workarray = new XXDouble[%WORK_ARRAY_SIZE% + 1];
 
-  myintegmethod.Initialize(this);
+	myintegmethod.Initialize(this);
 
 	state = initialrun;
 
@@ -100,12 +98,12 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
 	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
 
-	for (int i=0;i<%NUMBER_INPUTS%;i++ )
+	for (int i=0;i<%NUMBER_INPUTS%; ++i )
 	{
 		  this->ports()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
 	}
 
-	for (int i=0;i<%NUMBER_OUTPUTS%;i++ )
+	for (int i=0;i<%NUMBER_OUTPUTS%; ++i )
 	{
 		  this->ports()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
 	}
@@ -127,6 +125,11 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 bool %SUBMODEL_NAME%::configureHook()
 {
+	if(! TaskContext::configureHook())
+	{
+		return false;
+	}
+
 	/* initialization phase (allocating memory) */
 	%VARPREFIX%initialize = true;
 
@@ -148,9 +151,6 @@ bool %SUBMODEL_NAME%::configureHook()
 	/* end of initialization phase */
 	%VARPREFIX%initialize = false;
 
-	/* ---------OROCOS Entry----
-	 * set priority and period */
-	this->setActivity(new Activity( 2, %VARPREFIX%step_size ));
 	return true;
 }
 
@@ -158,35 +158,44 @@ bool %SUBMODEL_NAME%::configureHook()
 /* the initialization function for submodel */
 bool %SUBMODEL_NAME%::startHook()
 {
+	if(! TaskContext::startHook())
+	{
+		return false;
+	}
+
 	/* calculate initial and static equations */
 	CalculateInitial ();
 	CalculateStatic ();
-  CopyInputsToVariables ();
-  CalculateInput ();
-  CalculateDynamic();
-  CalculateOutput ();
-  CopyVariablesToOutputs ();
-  return true;
+	CopyInputsToVariables ();
+	CalculateInput ();
+	CalculateDynamic();
+	CalculateOutput ();
+	CopyVariablesToOutputs ();
+	return true;
 }
 
 /* the function that calculates the submodel */
 void %SUBMODEL_NAME%::updateHook ()
 {
+	TaskContext::updateHook();
+
 	/* another precessor submodel could determine the parameters of this submodel
 	   and therefore the static parameter calculations need to be performed. */
-  CalculateStatic ();
+	CalculateStatic ();
 
-  /* main calculation of the model */
-  CopyInputsToVariables ();        //get input from port
-  CalculateInput ();
-  myintegmethod.Step();
-  CalculateOutput ();
-  CopyVariablesToOutputs ();       //send output to port
+	/* main calculation of the model */
+	CopyInputsToVariables ();        //get input from port
+	CalculateInput ();
+	myintegmethod.Step();
+	CalculateOutput ();
+	CopyVariablesToOutputs ();       //send output to port
 }
 
 /* the termination function for submodel */
 void %SUBMODEL_NAME%::stopHook()
 {
+	TaskContext::stopHook();
+
 	/* copy the inputs */
 	CopyInputsToVariables ();       //get inputs from port
 
@@ -266,7 +275,9 @@ void %SUBMODEL_NAME%::initProperty()
 	if(! doc.LoadFile() )
 	{
 		log(Info) << "File not found: misc/%SUBMODEL_NAME%_config_tokens.xml" << endlog();
+		return;
 	}
+
 	TiXmlHandle hdoc(&doc);
 	TiXmlElement* pElem;
 	TiXmlHandle hRoot(0);

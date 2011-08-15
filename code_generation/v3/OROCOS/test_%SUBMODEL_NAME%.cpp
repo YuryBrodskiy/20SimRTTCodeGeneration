@@ -41,7 +41,14 @@ int ORO_main(int argc, char** argv)
 {
         Logger::In in("main()");
 
+	if ( log().getLogLevel() < Logger::Info ) {
+	        log().setLogLevel( Logger::Info );
+        	log(Info) << argv[0] << " manually raises LogLevel to 'Info' (5). See also file 'orocos.log'."<<endlog();
+    	}
+
         %SUBMODEL_NAME% my20simSubmodel;
+
+        my20simSubmodel.setActivity(new Activity( 2 ));
 
         /* initialize the submodel */
         my20simSubmodel.configure();

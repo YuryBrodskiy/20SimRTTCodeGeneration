@@ -94,6 +94,9 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 	private:
 		/* internal submodel computation methods */
 
+		XXDouble u [%NUMBER_INPUTS% + 1]; // Optimization for CopyInputsToVariables
+		XXDouble y [%NUMBER_OUTPUTS% + 1]; //Optimization for CopyVariablesToOutputs
+
 		/**
 		 * CalculateInitial()
 		 * This function calculates the initial equations of the model.
