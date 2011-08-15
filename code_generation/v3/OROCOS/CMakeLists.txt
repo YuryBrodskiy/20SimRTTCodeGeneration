@@ -23,20 +23,16 @@ include(${OROCOS-RTT_USE_FILE_PATH}/UseOROCOS-RTT.cmake)
 
 
 #OROCOS setup
-#SET(OROCOS_INSTALL_DIR /usr/local)
 set(OROCOS_TARGET $ENV{OROCOS_TARGET})
 
 #Add include directories
 INCLUDE_DIRECTORIES(include)
-#                    ${OROCOS_INSTALL_DIR}/include
-#                    ${OROCOS_INSTALL_DIR}/include/orocos)
 
 IF(${OROCOS_TARGET} MATCHES xenomai)
     INCLUDE_DIRECTORIES(/usr/xenomai/include)
 ENDIF(${OROCOS_TARGET} MATCHES xenomai)
 
 #Add link directories for libraries
-#LINK_DIRECTORIES(${OROCOS_INSTALL_DIR}/lib)
 IF(${OROCOS_TARGET} MATCHES xenomai)
     LINK_DIRECTORIES(/usr/xenomai/lib)
     LINK_LIBRARIES(native)
@@ -56,7 +52,6 @@ SET(COMMON_SOURCE  src/xxfuncs.cpp src/xxinteg.cpp src/xxinverse.cpp   src/tinyx
             src/tinyxmlparser.cpp)
 
 #Executable component and can also be a library usable for orocos deployment
-# use ADD_LIBRARY(%SUBMODEL_NAME% SHARED %SUBMODEL_NAME%.cpp)
 orocos_component(%SUBMODEL_NAME% src/%SUBMODEL_NAME%.cpp ${COMMON_SOURCE} ${COMMON_HEADERS})
 
 orocos_executable(test_%SUBMODEL_NAME% test_%SUBMODEL_NAME%.cpp ${COMMON_HEADERS})
