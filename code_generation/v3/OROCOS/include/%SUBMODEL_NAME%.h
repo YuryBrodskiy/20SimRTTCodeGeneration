@@ -19,14 +19,14 @@
    The model itself is the %SUBMODEL_NAME%.cpp file
 */
 
+#ifndef %SUBMODEL_NAME%_H
+#define %SUBMODEL_NAME%_H
+
 /* 20-sim include files */
 #include "xxfuncs.h"
 #include "xxmatrix.h"
 #include "xxmodel.h"
 #include "xxinteg.h"
-
-#ifndef %SUBMODEL_NAME%_H
-#define %SUBMODEL_NAME%_H
 
 /* parameter parsing include */
 #include "tinyxml.h"
@@ -39,6 +39,9 @@
 #include <rtt/RTT.hpp>
 #include <string>
 #include <vector>
+#include <rtt/Property.hpp>
+#include <rtt/PropertyBag.hpp>
+#include <rtt/Time.hpp>
 
 class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 {
@@ -81,6 +84,8 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		}
 
 		stateflags_%SUBMODEL_NAME% state;
+
+		virtual bool setPeriod(RTT::Seconds s);
 
 	protected:
 		/**
@@ -156,7 +161,7 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * This function checkes a generated xml file and defines orocos property.
 		 * These properties can then be changed at run time or by using configuration file
 		 */
-		void initProperty(void);
+		void initProperties(void);
 
 		%INTEGRATION_METHOD_NAME% myintegmethod;	///< pointer to the integration method for this submodel
 
@@ -166,6 +171,16 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 
 		RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
 		RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
+
+		/**
+		 * Property bag for 20sim parameters.
+		 */
+		RTT::PropertyBag param_bag;
+
+		/**
+		 * Save the 20sim parameters on exit?
+		 */
+		bool save_properties_on_exit;
 
 };
 

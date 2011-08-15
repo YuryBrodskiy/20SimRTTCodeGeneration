@@ -21,6 +21,7 @@
 
 /* Orocos include */
 #include <boost/algorithm/string.hpp>
+#include <rtt/marsh/Marshalling.hpp>
 
 using namespace Orocos;
 using namespace RTT;
@@ -57,8 +58,9 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	}
 }
 
-%SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name, PreOperational)
+%SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name, PreOperational), save_properties_on_exit(false)
 {
+	//------------------ 20-sim ------------------------------
 	%VARPREFIX%start_time = %START_TIME%;
 	%VARPREFIX%finish_time = %FINISH_TIME%;
 	%VARPREFIX%step_size = %TIME_STEP_SIZE%;
@@ -89,11 +91,14 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 	state = initialrun;
 
-	/*------------------orocos entry------------------------------
-	 * initialize properties
-	 * add input output ports */
+	//------------------orocos------------------------------
+	this->addProperty("Integration step size", %VARPREFIX%step_size ).doc("Integration step size.");
 
-	initProperty();
+	this->addProperty("Save parameters on exit", save_properties_on_exit ).doc("Save the parameters on exit.");
+
+	this->addProperty("20-sim model parameters", param_bag ).doc("20-sim model parameter bag");
+
+	initProperties();
 
 	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
 	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
@@ -203,7 +208,12 @@ void %SUBMODEL_NAME%::stopHook()
 	CalculateFinal ();
 
 	/* set the outputs */
-  CopyVariablesToOutputs ();     //send output to port
+	CopyVariablesToOutputs ();     //send output to port
+
+	if(save_properties_on_exit)
+	{
+		this->getProvider<Marshalling>("marshalling")->writeProperties( "%SUBMODEL_NAME%.cpf" );
+	}
 }
 
 
@@ -269,12 +279,22 @@ void %SUBMODEL_NAME%::CalculateFinal (void)
  * Then paramters are selected and added as a property to the orocos
  * component. These properties can be updated at runtime
  */
-void %SUBMODEL_NAME%::initProperty()
+void %SUBMODEL_NAME%::initProperties()
 {
+	// 1) Read and updated (or created any missing) properties in the TaskContext from an Orocos property file.
+	if(! this->getProvider<Marshalling>("marshalling")->loadProperties( "%SUBMODEL_NAME%.cpf" ))
+	{
+		log(Info) << "Did not find: %SUBMODEL_NAME%.cpf, therefore generating a new file." << endlog();
+	}
+
+	// 2) Add any missing parameters from 20-sim XML file.
+	// @todo Implement me!!!
+
+	// Convert 20sim variables to OROCOS properties.
 	TiXmlDocument doc("../misc/%SUBMODEL_NAME%_config_tokens.xml");
 	if(! doc.LoadFile() )
 	{
-		log(Info) << "File not found: misc/%SUBMODEL_NAME%_config_tokens.xml" << endlog();
+		log(Error) << "File not found: misc/%SUBMODEL_NAME%_config_tokens.xml" << endlog();
 		return;
 	}
 
@@ -287,16 +307,18 @@ void %SUBMODEL_NAME%::initProperty()
 	int parIndex;
 	const char * lbl;
 
+	param_bag
+
 	hRoot=TiXmlHandle(hdoc.FirstChildElement().Element());
 	pElem = hRoot.FirstChild("modelVariables").FirstChild().Element();
 
 	if(pElem)
 	{
-	  for(pElem;pElem;pElem=pElem->NextSiblingElement())
-	  {
-      lbl = pElem->FirstChild("kind")->ToElement()->GetText();
-      chkPar = lbl;
-      if(chkPar == "parameter")
+		for(pElem;pElem;pElem=pElem->NextSiblingElement())
+		{
+			lbl = pElem->FirstChild("kind")->ToElement()->GetText();
+			chkPar = lbl;
+			if(chkPar == "parameter")
 			{
 				const char * name = pElem->FirstChild("name")->ToElement()->GetText();
 				const char * disc = pElem->FirstChild("description")->ToElement()->GetText();
@@ -306,7 +328,21 @@ void %SUBMODEL_NAME%::initProperty()
 				parIndex = atoi(index);
 				this->addProperty(parName,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(parDiscription);
 			}
-	  }
+		}
 	}
-	return;
+
+}
+
+bool %SUBMODEL_NAME%::setPeriod(RTT::Seconds s)
+{
+	if(TaskContext::setPeriod(s))
+	{
+		%VARPREFIX%step_size = s;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
 }
