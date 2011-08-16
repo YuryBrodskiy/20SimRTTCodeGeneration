@@ -27,6 +27,10 @@ using namespace Orocos;
 using namespace RTT;
 using namespace std;
 
+const string XXsim_config_xml = "config/%SUBMODEL_NAME%_base_config.xml";
+const string Orocos_config_xml = "config/%SUBMODEL_NAME%_overrides_config.cpf";
+
+
 	/* this PRIVATE function sets the input variables from the input vector */
 	//@todo Improve for multiple component inputs to have a synchronized execution.
 void %SUBMODEL_NAME%::CopyInputsToVariables ()
@@ -78,7 +82,7 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 	/* the variable arrays */
 	%VARPREFIX%%XX_CONSTANT_ARRAY_NAME% = new XXDouble[%NUMBER_CONSTANTS% + 1];		/* constants */
-	%VARPREFIX%%XX_PARAMETER_ARRAY_NAME% = new XXDouble[%NUMBER_PARAMETERS% + 1];		/* parameters */
+	%VARPREFIX%%XX_PARAMETER_ARRAY_NAME% = new XXDouble[%NUMBER_PARAMETERS% + 1];		/* parameters, currently only one type of parameter exists: double */
 	%VARPREFIX%%XX_INITIAL_VALUE_ARRAY_NAME% = new XXDouble[%NUMBER_INITIAL_VALUES% + 1];		/* initial values */
 	%VARPREFIX%%XX_VARIABLE_ARRAY_NAME% = new XXDouble[%NUMBER_VARIABLES% + 1];		/* variables */
 	%VARPREFIX%%XX_STATE_ARRAY_NAME% = new XXDouble[%NUMBER_STATES% + 1];		/* states */
@@ -92,13 +96,11 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	state = initialrun;
 
 	//------------------orocos------------------------------
-	this->addProperty("Integration step size", %VARPREFIX%step_size ).doc("Integration step size.");
+	this->addProperty("integration_step_size", %VARPREFIX%step_size ).doc("Integration step size.");
 
-	this->addProperty("Save parameters on exit", save_properties_on_exit ).doc("Save the parameters on exit.");
+	this->addProperty("save_parameters_on_exit", save_properties_on_exit ).doc("Save the parameters on exit.");
 
-	this->addProperty("20-sim model parameters", param_bag ).doc("20-sim model parameter bag");
-
-	initProperties();
+	initParameters();
 
 	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
 	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
@@ -116,6 +118,11 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 %SUBMODEL_NAME%::~%SUBMODEL_NAME%(void)
 {
+	if(save_properties_on_exit)
+	{
+		this->getProvider<Marshalling>("marshalling")->writeProperties( Orocos_config_xml );
+	}
+
 	/* free memory */
 	delete[] %VARPREFIX%%XX_CONSTANT_ARRAY_NAME%;
 	delete[] %VARPREFIX%%XX_PARAMETER_ARRAY_NAME%;
@@ -209,11 +216,6 @@ void %SUBMODEL_NAME%::stopHook()
 
 	/* set the outputs */
 	CopyVariablesToOutputs ();     //send output to port
-
-	if(save_properties_on_exit)
-	{
-		this->getProvider<Marshalling>("marshalling")->writeProperties( "%SUBMODEL_NAME%.cpf" );
-	}
 }
 
 
@@ -279,58 +281,63 @@ void %SUBMODEL_NAME%::CalculateFinal (void)
  * Then paramters are selected and added as a property to the orocos
  * component. These properties can be updated at runtime
  */
-void %SUBMODEL_NAME%::initProperties()
+void %SUBMODEL_NAME%::initParameters()
 {
-	// 1) Read and updated (or created any missing) properties in the TaskContext from an Orocos property file.
-	if(! this->getProvider<Marshalling>("marshalling")->loadProperties( "%SUBMODEL_NAME%.cpf" ))
-	{
-		log(Info) << "Did not find: %SUBMODEL_NAME%.cpf, therefore generating a new file." << endlog();
-	}
-
-	// 2) Add any missing parameters from 20-sim XML file.
-	// @todo Implement me!!!
-
-	// Convert 20sim variables to OROCOS properties.
-	TiXmlDocument doc("../misc/%SUBMODEL_NAME%_config_tokens.xml");
+	// 1) Load the 20Sim parameter config
+	TiXmlDocument doc(XXsim_config_xml);
 	if(! doc.LoadFile() )
 	{
-		log(Error) << "File not found: misc/%SUBMODEL_NAME%_config_tokens.xml" << endlog();
+		log(Error) << "File not found: " << XXsim_config_xml << endlog();
 		return;
 	}
 
 	TiXmlHandle hdoc(&doc);
 	TiXmlElement* pElem;
 	TiXmlHandle hRoot(0);
-	string chkPar;
-	string parName;
-	string parDiscription;
 	int parIndex;
 	const char * lbl;
-
-	param_bag
+	TiXmlNode* tNode(NULL);
 
 	hRoot=TiXmlHandle(hdoc.FirstChildElement().Element());
 	pElem = hRoot.FirstChild("modelVariables").FirstChild().Element();
 
 	if(pElem)
 	{
-		for(pElem;pElem;pElem=pElem->NextSiblingElement())
+		while(pElem=pElem->NextSiblingElement())
 		{
-			lbl = pElem->FirstChild("kind")->ToElement()->GetText();
-			chkPar = lbl;
-			if(chkPar == "parameter")
+			log(Info) << "Here!" << endlog();
+
+			lbl = (tNode = pElem->FirstChild("kind")) == NULL ? NULL : tNode->ToElement()->GetText();
+
+			if(boost::equals(lbl, "parameter"))
 			{
-				const char * name = pElem->FirstChild("name")->ToElement()->GetText();
-				const char * disc = pElem->FirstChild("description")->ToElement()->GetText();
-				const char * index = pElem->FirstChild("storage")->FirstChild("index")->ToElement()->GetText();
-				parName = name;
-				parDiscription = disc;
+				log(Info) << "Here2!" << endlog();
+				const char * name = (tNode = pElem->FirstChild("name")) == NULL ? NULL : tNode->ToElement()->GetText();
+				const char * disc = (tNode = pElem->FirstChild("description")) == NULL ? "" : tNode->ToElement()->GetText();
+				const char * index = (tNode = pElem->FirstChild("storage")) == NULL ? NULL : tNode->FirstChild("index")->ToElement()->GetText();
+				const char * type = (tNode = pElem->FirstChild("type")) == NULL ? NULL : tNode->ToElement()->GetText();
+
+				if(name == NULL || index == NULL || type == NULL)
+				{
+					log(Error) << "XML file: " << XXsim_config_xml << " incorrect." << endlog();
+					continue;
+				}
+
 				parIndex = atoi(index);
-				this->addProperty(parName,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(parDiscription);
+
+				log(Info) << "Name: " << name << " Disc: " << disc << " Index: " << parIndex << " Type: " << type << endlog();
+
+				this->addProperty(name,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
 			}
 		}
 	}
 
+	// 2) Update the parameters with the 'Orocos' parameter config.
+	// Note: We need to load the 20Sim parameters first, otherwise the parameter location is not know.
+	if(! this->getProvider<Marshalling>("marshalling")->loadProperties( Orocos_config_xml ))
+	{
+		log(Info) << "Did not find: " << Orocos_config_xml << ", therefore using original 20Sim parameters." << endlog();
+	}
 }
 
 bool %SUBMODEL_NAME%::setPeriod(RTT::Seconds s)
@@ -344,5 +351,4 @@ bool %SUBMODEL_NAME%::setPeriod(RTT::Seconds s)
 	{
 		return false;
 	}
-
 }

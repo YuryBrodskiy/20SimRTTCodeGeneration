@@ -161,7 +161,7 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * This function checkes a generated xml file and defines orocos property.
 		 * These properties can then be changed at run time or by using configuration file
 		 */
-		void initProperties(void);
+		void initParameters(void);
 
 		%INTEGRATION_METHOD_NAME% myintegmethod;	///< pointer to the integration method for this submodel
 

@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(%MODEL_NAME%_%SUBMODEL_NAME%)
 
 #
@@ -42,6 +42,13 @@ ENDIF(${OROCOS_TARGET} MATCHES xenomai)
 orocos_use_package(ocl-taskbrowser)
 orocos_use_package(rtt)
 
+find_package(Orocos-RTT REQUIRED rtt-marshalling)
+if ( OROCOS-RTT_RTT-MARSHALLING_FOUND )
+  link_libraries( ${OROCOS-RTT_RTT-MARSHALLING_LIBRARY} )
+else( OROCOS-RTT_RTT-MARSHALLING_FOUND )
+  message(SEND_ERROR "'rtt-marshalling' not found !")
+endif( OROCOS-RTT_RTT-MARSHALLING_FOUND )
+
 #Header and Source files used in the component
 SET(COMMON_HEADERS  include/xxfuncs.h   include/xxinteg.h   include/tinyxml.h   include/xxmatrix.h
             include/xxinverse.h include/xxmodel.h   include/MotionProfiles.h    include/tinystr.h
@@ -56,6 +63,9 @@ orocos_component(%SUBMODEL_NAME% src/%SUBMODEL_NAME%.cpp ${COMMON_SOURCE} ${COMM
 
 orocos_executable(test_%SUBMODEL_NAME% test_%SUBMODEL_NAME%.cpp ${COMMON_HEADERS})
 target_link_libraries(test_%SUBMODEL_NAME% %SUBMODEL_NAME%)
+
+file(COPY ${CMAKE_SOURCE_DIR}/config DESTINATION ${CMAKE_BINARY_DIR})
+
 #
 # Generates and installs our package. Must be the last statement such
 # that it can pick up all above settings.
