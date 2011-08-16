@@ -96,6 +96,9 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	state = initialrun;
 
 	//------------------orocos------------------------------
+	//@todo Add property bags for subcomponents.
+	//@todo Fix properties that start with numbers and remove \.
+
 	this->addProperty("integration_step_size", %VARPREFIX%step_size ).doc("Integration step size.");
 
 	this->addProperty("save_parameters_on_exit", save_properties_on_exit ).doc("Save the parameters on exit.");
@@ -107,12 +110,12 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 	for (int i=0;i<%NUMBER_INPUTS%; ++i )
 	{
-		  this->ports()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
+		  this->provides()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
 	}
 
 	for (int i=0;i<%NUMBER_OUTPUTS%; ++i )
 	{
-		  this->ports()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
+		  this->provides()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
 	}
 }
 
