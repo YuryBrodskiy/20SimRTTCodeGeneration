@@ -102,7 +102,7 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 	this->addProperty("save_parameters_on_exit", save_properties_on_exit ).doc("Save the parameters on exit.");
 
-	initParametersAndVariables();
+	setupParametersAndStates();
 
 	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
 	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
@@ -163,6 +163,12 @@ bool %SUBMODEL_NAME%::configureHook()
 
 	/* set the matrices */
 	%INITIALIZE_MATRICES%
+
+	// Update/override the parameters with the 'Orocos' parameter config.
+	if(! this->getProvider<Marshalling>("marshalling")->loadProperties( Orocos_config_xml ))
+	{
+		log(Info) << "Did not find: " << Orocos_config_xml << ", therefore using original 20Sim parameters." << endlog();
+	}
 
 	/* end of initialization phase */
 	%VARPREFIX%initialize = false;
@@ -281,14 +287,10 @@ void %SUBMODEL_NAME%::CalculateFinal (void)
   %FINAL_EQUATIONS%
 }
 
-/* This function uses tinyxml to parse model configuration xml file.
- * Then paramters are selected and added as a property to the orocos
- * component. These properties can be updated at runtime
- */
-void %SUBMODEL_NAME%::initParametersAndVariables()
+void %SUBMODEL_NAME%::setupParametersAndStates()
 {
 	using namespace boost;
-	// 1) Load the 20Sim parameter config
+
 	TiXmlDocument doc(XXsim_config_xml);
 	if(! doc.LoadFile() )
 	{
@@ -312,7 +314,7 @@ void %SUBMODEL_NAME%::initParametersAndVariables()
 		{
 			kind = (tNode = pElem->FirstChild("kind")) == NULL ? NULL : tNode->ToElement()->GetText();
 
-			if(! (boost::equals(kind, "parameter") || boost::equals(kind, "variable")) )
+			if(! (boost::equals(kind, "parameter") || boost::equals(kind, "state")) )
 			{
 				log(Info) << XXsim_config_xml << " token kind not recognized(" << kind << ")" << endlog();
 				continue;
@@ -396,18 +398,15 @@ void %SUBMODEL_NAME%::initParametersAndVariables()
 					p_bag->addProperty(cleaned_name,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
 				}
 			}
-			else if(boost::equals(kind, "variable"))
+			else if(boost::equals(kind, "state"))
 			{
-				//@todo Implement me
+				//RTT::internal::ReferenceDataSource refsrc(%VARPREFIX%%XX_STATE_ARRAY_NAME%[parIndex]);
+				string str(name);
+				replace_all(str, "\\", "_");
+
+				this->addAttribute(str,%VARPREFIX%%XX_STATE_ARRAY_NAME%[parIndex]);
 			}
 		}
-	}
-
-	// 2) Update the parameters with the 'Orocos' parameter config.
-	// Note: We need to load the 20Sim parameters first, otherwise the parameter location is not know.
-	if(! this->getProvider<Marshalling>("marshalling")->loadProperties( Orocos_config_xml ))
-	{
-		log(Info) << "Did not find: " << Orocos_config_xml << ", therefore using original 20Sim parameters." << endlog();
 	}
 }
 

@@ -157,11 +157,11 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		void CopyVariablesToOutputs ();
 
 		/**
-		 * initProperty()
-		 * This function checkes a generated xml file and defines orocos property.
-		 * These properties can then be changed at run time or by using configuration file
+		 * @brief setupParametersAndStates()
+		 * Loads the parameter and state definitions from a 20sim generated xml file.
+		 * Properties can be automatically overridden by an Orocos config xml file.
 		 */
-		void initParametersAndVariables();
+		void setupParametersAndStates();
 
 		/**
 		 * @brief Helper function to cleanup created property bags.
