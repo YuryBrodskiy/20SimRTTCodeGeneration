@@ -22,6 +22,7 @@
 /* Orocos include */
 #include <boost/algorithm/string.hpp>
 #include <rtt/marsh/Marshalling.hpp>
+#include <ocl/Component.hpp>
 
 using namespace Orocos;
 using namespace RTT;
@@ -45,7 +46,8 @@ void %SUBMODEL_NAME%::CopyInputsToVariables ()
 		  }
 	}
 
-	/* copy the input vector to the input variables */
+	/* copy the input vector to the input variables ORO_CREATE_COMPONENT(PID)
+*/
 	%INPUT_TO_VARIABLE_EQUATIONS%
 }
 
@@ -355,3 +357,9 @@ bool %SUBMODEL_NAME%::setPeriod(RTT::Seconds s)
 		return false;
 	}
 }
+
+/* Macro to generate component library
+ * Can be modified if the component is part of a big project with other components 
+ */
+ORO_CREATE_COMPONENT(%SUBMODEL_NAME%)
+
