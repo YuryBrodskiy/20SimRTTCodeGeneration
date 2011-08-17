@@ -51,7 +51,7 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		/**
 		 * %SUBMODEL_NAME% constructor
 		 */
-		%SUBMODEL_NAME%(string name = "my%SUBMODEL_NAME%");
+		%SUBMODEL_NAME%(string name = "%SUBMODEL_NAME%");
 
 		/**
 		 * %SUBMODEL_NAME% destructor
@@ -161,7 +161,15 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * This function checkes a generated xml file and defines orocos property.
 		 * These properties can then be changed at run time or by using configuration file
 		 */
-		void initParameters(void);
+		void initParametersAndVariables();
+
+		/**
+		 * @brief Helper function to cleanup created property bags.
+		 * @return Deleted any sub property bags.
+		 * @param p - The PropertyBag from which sub property bags should be removed.
+		 * @note - Does not delete any other Property<T>'s.
+		 */
+		void cleanupPropertyBags(RTT::PropertyBag* p);
 
 		%INTEGRATION_METHOD_NAME% myintegmethod;	///< pointer to the integration method for this submodel
 
@@ -172,10 +180,10 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
 		RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
 
-		/**
-		 * Property bag for 20sim parameters.
-		 */
-		RTT::PropertyBag param_bag;
+//		/**
+//		 * Property bag for 20sim parameters.
+//		 */
+//		RTT::PropertyBag param_bag;
 
 		/**
 		 * Save the 20sim parameters on exit?

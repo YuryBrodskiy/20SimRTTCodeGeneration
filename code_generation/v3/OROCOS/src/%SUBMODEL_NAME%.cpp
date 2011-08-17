@@ -96,14 +96,11 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	state = initialrun;
 
 	//------------------orocos------------------------------
-	//@todo Add property bags for subcomponents.
-	//@todo Fix properties that start with numbers and remove \.
-
 	this->addProperty("integration_step_size", %VARPREFIX%step_size ).doc("Integration step size.");
 
 	this->addProperty("save_parameters_on_exit", save_properties_on_exit ).doc("Save the parameters on exit.");
 
-	initParameters();
+	initParametersAndVariables();
 
 	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
 	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
@@ -125,6 +122,8 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	{
 		this->getProvider<Marshalling>("marshalling")->writeProperties( Orocos_config_xml );
 	}
+
+	cleanupPropertyBags(this->properties());
 
 	/* free memory */
 	delete[] %VARPREFIX%%XX_CONSTANT_ARRAY_NAME%;
@@ -284,8 +283,9 @@ void %SUBMODEL_NAME%::CalculateFinal (void)
  * Then paramters are selected and added as a property to the orocos
  * component. These properties can be updated at runtime
  */
-void %SUBMODEL_NAME%::initParameters()
+void %SUBMODEL_NAME%::initParametersAndVariables()
 {
+	using namespace boost;
 	// 1) Load the 20Sim parameter config
 	TiXmlDocument doc(XXsim_config_xml);
 	if(! doc.LoadFile() )
@@ -298,7 +298,7 @@ void %SUBMODEL_NAME%::initParameters()
 	TiXmlElement* pElem;
 	TiXmlHandle hRoot(0);
 	int parIndex;
-	const char * lbl;
+	const char * kind;
 	TiXmlNode* tNode(NULL);
 
 	hRoot=TiXmlHandle(hdoc.FirstChildElement().Element());
@@ -308,29 +308,95 @@ void %SUBMODEL_NAME%::initParameters()
 	{
 		while(pElem=pElem->NextSiblingElement())
 		{
-			log(Info) << "Here!" << endlog();
+			kind = (tNode = pElem->FirstChild("kind")) == NULL ? NULL : tNode->ToElement()->GetText();
 
-			lbl = (tNode = pElem->FirstChild("kind")) == NULL ? NULL : tNode->ToElement()->GetText();
-
-			if(boost::equals(lbl, "parameter"))
+			if(! (boost::equals(kind, "parameter") || boost::equals(kind, "variable")) )
 			{
-				log(Info) << "Here2!" << endlog();
-				const char * name = (tNode = pElem->FirstChild("name")) == NULL ? NULL : tNode->ToElement()->GetText();
-				const char * disc = (tNode = pElem->FirstChild("description")) == NULL ? "" : tNode->ToElement()->GetText();
-				const char * index = (tNode = pElem->FirstChild("storage")) == NULL ? NULL : tNode->FirstChild("index")->ToElement()->GetText();
-				const char * type = (tNode = pElem->FirstChild("type")) == NULL ? NULL : tNode->ToElement()->GetText();
+				log(Info) << XXsim_config_xml << " token kind not recognized(" << kind << ")" << endlog();
+				continue;
+			}
 
-				if(name == NULL || index == NULL || type == NULL)
+			//log(Info) << "Found kind: " << kind << endlog();
+
+			const char * name = (tNode = pElem->FirstChild("name")) == NULL ? NULL : tNode->ToElement()->GetText();
+			const char * disc = (tNode = pElem->FirstChild("description")) == NULL ? "" : tNode->ToElement()->GetText();
+			const char * index = (tNode = pElem->FirstChild("storage")) == NULL ? NULL : tNode->FirstChild("index")->ToElement()->GetText();
+			const char * type = (tNode = pElem->FirstChild("type")) == NULL ? NULL : tNode->ToElement()->GetText();
+
+			if(name == NULL || index == NULL || type == NULL)
+			{
+				log(Error) << "XML file: " << XXsim_config_xml << " incorrect." << endlog();
+				continue;
+			}
+
+			if(disc == NULL)
+			{
+				disc = "";
+			}
+
+			parIndex = atoi(index);
+
+			//log(Info) << "Name: " << name << " Disc: " << disc << " Index: " << parIndex << " Type: " << type << endlog();
+
+			if(boost::equals(kind, "parameter"))
+			{
+				RTT::PropertyBag* p_bag(NULL);
+				string cleaned_name;
+
+				typedef split_iterator<const char*> ssi;
+				ssi end;
+				for(ssi it=make_split_iterator(name, first_finder("\\", is_iequal())); it!=end;)
 				{
-					log(Error) << "XML file: " << XXsim_config_xml << " incorrect." << endlog();
-					continue;
+					cleaned_name = copy_range<std::string>(*it);
+
+					 // Are we at the end already?
+					if(++it == end)
+					{
+						break; // last name of the string is the name of the property.
+					}
+
+					if(p_bag == NULL)
+					{
+						RTT::Property<PropertyBag>* ppb = dynamic_cast<RTT::Property<PropertyBag>*>(this->getProperty(cleaned_name));
+						if(ppb == NULL)
+						{
+							p_bag = new RTT::PropertyBag;
+							this->addProperty(cleaned_name, *p_bag).doc("Submodel parameters");
+						}
+						else
+						{
+							p_bag = &(ppb->value());
+						}
+					}
+					else
+					{
+						RTT::Property<PropertyBag>* ppb = dynamic_cast<RTT::Property<PropertyBag>*>(p_bag->getProperty(cleaned_name));
+						RTT::PropertyBag* ptmp(NULL);
+						if(ppb == NULL)
+						{
+							ptmp = new RTT::PropertyBag;
+							p_bag->addProperty(cleaned_name, *ptmp).doc("Submodel parameters");
+						}
+						else
+						{
+							ptmp = &(ppb->value());
+						}
+						p_bag = ptmp;
+					}
 				}
 
-				parIndex = atoi(index);
-
-				log(Info) << "Name: " << name << " Disc: " << disc << " Index: " << parIndex << " Type: " << type << endlog();
-
-				this->addProperty(name,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
+				if(p_bag == NULL)
+				{
+					this->addProperty(name,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
+				}
+				else
+				{
+					p_bag->addProperty(cleaned_name,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
+				}
+			}
+			else if(boost::equals(kind, "variable"))
+			{
+				//@todo Implement me
 			}
 		}
 	}
@@ -340,6 +406,26 @@ void %SUBMODEL_NAME%::initParameters()
 	if(! this->getProvider<Marshalling>("marshalling")->loadProperties( Orocos_config_xml ))
 	{
 		log(Info) << "Did not find: " << Orocos_config_xml << ", therefore using original 20Sim parameters." << endlog();
+	}
+}
+
+void %SUBMODEL_NAME%::cleanupPropertyBags(RTT::PropertyBag* p)
+{
+	RTT::PropertyBag::iterator it(p->begin());
+	RTT::PropertyBag::iterator end(p->end());
+
+	RTT::Property<PropertyBag>* ppb(NULL);
+
+	for(;it != end; ++it)
+	{
+		ppb = dynamic_cast<RTT::Property<PropertyBag>*>(*it);
+
+		if(ppb != NULL)
+		{
+			PropertyBag* ptmp = &(ppb->value());
+			cleanupPropertyBags(ptmp);
+			delete ptmp;
+		}
 	}
 }
 
