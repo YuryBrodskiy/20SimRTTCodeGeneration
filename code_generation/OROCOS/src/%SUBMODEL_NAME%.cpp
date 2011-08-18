@@ -104,18 +104,23 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 	setupParametersAndStates();
 
+#if %NUMBER_INPUTS% > 0
 	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
-	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
 
 	for (int i=0;i<%NUMBER_INPUTS%; ++i )
 	{
 		  this->provides()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
 	}
+#endif
+
+#if %NUMBER_OUTPUTS% > 0
+	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
 
 	for (int i=0;i<%NUMBER_OUTPUTS%; ++i )
 	{
 		  this->provides()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
 	}
+#endif
 }
 
 %SUBMODEL_NAME%::~%SUBMODEL_NAME%(void)
