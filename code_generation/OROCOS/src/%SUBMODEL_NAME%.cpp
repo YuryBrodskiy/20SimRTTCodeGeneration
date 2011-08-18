@@ -31,6 +31,33 @@ using namespace std;
 const string XXsim_config_xml = "config/%SUBMODEL_NAME%_base_config.xml";
 const string Orocos_config_xml = "config/%SUBMODEL_NAME%_overrides_config.cpf";
 
+string replaceIllegalCharacter(string str)
+{
+	using namespace boost;
+	replace_all(str, "\\", "_");
+	replace_all(str, "[", "__");
+	replace_all(str, "]", "__");
+	replace_all(str, ".", "_");
+	replace_all(str, ",", "_");
+	return str;
+}
+
+void replaceIllegalCharacters(string array[], unsigned int size)
+{
+	for(unsigned int i = 0; i < size; ++i)
+	{
+		string tmp = replaceIllegalCharacter(array[i]);
+		for(unsigned int j = 0; j < size; ++j)
+		{
+			if(i != j && boost::equals(tmp, array[j]))
+			{
+				log(Info) << "Name clash after illegal character replacement: " << array[i] << "<->" << tmp << endlog();
+				tmp.append(1, '_');
+			}
+		}
+		array[i] = tmp;
+	}
+}
 
 	/* this PRIVATE function sets the input variables from the input vector */
 	//@todo Improve for multiple component inputs to have a synchronized execution.
@@ -66,6 +93,8 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 
 %SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name, PreOperational), save_properties_on_exit(false)
 {
+	using namespace boost;
+
 	//------------------ 20-sim ------------------------------
 	%VARPREFIX%start_time = %START_TIME%;
 	%VARPREFIX%finish_time = %FINISH_TIME%;
@@ -107,18 +136,22 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 #if %NUMBER_INPUTS% > 0
 	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
 
+	replaceIllegalCharacters(inputstr, %NUMBER_INPUTS%);
+
 	for (int i=0;i<%NUMBER_INPUTS%; ++i )
 	{
-		  this->provides()->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port");
+		this->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port"); //provides()->
 	}
 #endif
 
 #if %NUMBER_OUTPUTS% > 0
 	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
 
+	replaceIllegalCharacters(outputstr, %NUMBER_OUTPUTS%);
+
 	for (int i=0;i<%NUMBER_OUTPUTS%; ++i )
 	{
-		  this->provides()->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port");
+		this->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port"); //provides()->
 	}
 #endif
 }
@@ -321,7 +354,7 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 
 			if(! (boost::equals(kind, "parameter") || boost::equals(kind, "state")) )
 			{
-				log(Info) << XXsim_config_xml << " token kind not recognized(" << kind << ")" << endlog();
+				log(Debug) << XXsim_config_xml << " token kind not recognized(" << kind << ")" << endlog();
 				continue;
 			}
 
@@ -345,7 +378,7 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 
 			parIndex = atoi(index);
 
-			//log(Info) << "Name: " << name << " Disc: " << disc << " Index: " << parIndex << " Type: " << type << endlog();
+			log(Debug) << "Name: " << name << " Disc: " << disc << " Index: " << parIndex << " Type: " << type << endlog();
 
 			if(boost::equals(kind, "parameter"))
 			{
@@ -356,7 +389,7 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 				ssi end;
 				for(ssi it=make_split_iterator(name, first_finder("\\", is_iequal())); it!=end;)
 				{
-					cleaned_name = copy_range<std::string>(*it);
+					cleaned_name = replaceIllegalCharacter(copy_range<std::string>(*it));
 
 					 // Are we at the end already?
 					if(++it == end)
@@ -396,7 +429,7 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 
 				if(p_bag == NULL)
 				{
-					this->addProperty(name,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
+					this->addProperty(replaceIllegalCharacter(name),%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
 				}
 				else
 				{
@@ -405,11 +438,7 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 			}
 			else if(boost::equals(kind, "state"))
 			{
-				//RTT::internal::ReferenceDataSource refsrc(%VARPREFIX%%XX_STATE_ARRAY_NAME%[parIndex]);
-				string str(name);
-				replace_all(str, "\\", "_");
-
-				this->addAttribute(str,%VARPREFIX%%XX_STATE_ARRAY_NAME%[parIndex]);
+				this->addAttribute(replaceIllegalCharacter(string(name)),%VARPREFIX%%XX_STATE_ARRAY_NAME%[parIndex]);
 			}
 		}
 	}
