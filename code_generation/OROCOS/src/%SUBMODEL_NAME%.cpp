@@ -31,6 +31,12 @@ using namespace std;
 const string XXsim_config_xml = "config/%SUBMODEL_NAME%_base_config.xml";
 const string Orocos_config_xml = "config/%SUBMODEL_NAME%_overrides_config.cpf";
 
+
+/**
+ * @brief Removes illegal characters from 20sim generated names.
+ * This was necessary for interpretation based software, like the TaskBrowser, because they
+ * use things as '.' to access sub-properties.
+ */
 string replaceIllegalCharacter(string str)
 {
 	using namespace boost;
@@ -42,6 +48,10 @@ string replaceIllegalCharacter(string str)
 	return str;
 }
 
+/**
+ * @brief Performs the replaceIllegalCharacter for arrays of names and furthermore
+ * checks/prevents duplicates.
+ */
 void replaceIllegalCharacters(string array[], unsigned int size)
 {
 	for(unsigned int i = 0; i < size; ++i)
@@ -51,7 +61,7 @@ void replaceIllegalCharacters(string array[], unsigned int size)
 		{
 			if(i != j && boost::equals(tmp, array[j]))
 			{
-				log(Info) << "Name clash after illegal character replacement: " << array[i] << "<->" << tmp << endlog();
+				log(Info) << "Prevented name clash after illegal character replacement: " << array[i] << "<->" << tmp << endlog();
 				tmp.append(1, '_');
 			}
 		}
