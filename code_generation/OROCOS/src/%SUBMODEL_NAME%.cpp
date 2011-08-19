@@ -88,6 +88,12 @@ void %SUBMODEL_NAME%::CopyInputsToVariables ()
 	%INPUT_TO_VARIABLE_EQUATIONS%
 }
 
+#ifdef ORO_EXT
+%GETTERS_AND_SETTERS_PROPERTIES_CPP%
+
+%GETTERS_AND_SETTERS_PORTS_CPP%
+#endif
+
 /* this PRIVATE function uses the output variables to fill the output vector */
 void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 {

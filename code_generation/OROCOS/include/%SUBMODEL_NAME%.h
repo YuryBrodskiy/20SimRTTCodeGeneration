@@ -87,6 +87,15 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 
 		virtual bool setPeriod(RTT::Seconds s);
 
+		/**
+		 * %GETTERS_AND_SETTERS_PROPERTIES_X% generated in the 20-sim -> Orocos extension tool.
+		 */
+		#ifdef ORO_EXT
+		%GETTERS_AND_SETTERS_PROPERTIES_H%
+
+		%GETTERS_AND_SETTERS_PORTS_H%
+		#endif
+
 	protected:
 		/**
 		 * CalculateDynamic()
