@@ -69,47 +69,11 @@ void replaceIllegalCharacters(string array[], unsigned int size)
 	}
 }
 
-	/* this PRIVATE function sets the input variables from the input vector */
-	//@todo Improve for multiple component inputs to have a synchronized execution.
-void %SUBMODEL_NAME%::CopyInputsToVariables ()
-{
-	/* OROCOS Entry to copy port to input array */
-	double val = 0.0;
-
-	for (int i=0;i<%NUMBER_INPUTS%; ++i)
-	{
-		  if ( %VARPREFIX%Input[i].read(val) != RTT::NoData ) {
-		      u[i] = val;
-		  }
-	}
-
-	/* copy the input vector to the input variables ORO_CREATE_COMPONENT(PID)
-*/
-	%INPUT_TO_VARIABLE_EQUATIONS%
-}
-
-#ifdef ORO_EXT
-%GETTERS_AND_SETTERS_PROPERTIES_CPP%
-
-%GETTERS_AND_SETTERS_PORTS_CPP%
-#endif
-
-/* this PRIVATE function uses the output variables to fill the output vector */
-void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
-{
-	/* copy the output variables to the output vector */
-	%VARIABLE_TO_OUTPUT_EQUATIONS%
-
-	/* OROCOS Entry to copy output to port */
-	for (int i=0;i<%NUMBER_OUTPUTS%; ++i)
-	{
-		  %VARPREFIX%Output[i].write(y[i]);
-	}
-}
-
 %SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name, PreOperational), save_properties_on_exit(false)
 {
 	using namespace boost;
+
+	RTT::types::Types()->addType( new RTT::types::CArrayTypeInfo<double_array >("double[]") );
 
 	//------------------ 20-sim ------------------------------
 	%VARPREFIX%start_time = %START_TIME%;
@@ -282,6 +246,43 @@ void %SUBMODEL_NAME%::stopHook()
 	CopyVariablesToOutputs ();     //send output to port
 }
 
+#ifdef ORO_EXT
+%GETTERS_AND_SETTERS_PROPERTIES_CPP%
+
+%GETTERS_AND_SETTERS_PORTS_CPP%
+#endif
+
+/* this PRIVATE function sets the input variables from the input vector */
+//@todo Improve for multiple component inputs to have a synchronized execution.
+void %SUBMODEL_NAME%::CopyInputsToVariables ()
+{
+	/* OROCOS Entry to copy port to input array */
+	double val = 0.0;
+
+	for (int i=0;i<%NUMBER_INPUTS%; ++i)
+	{
+		  if ( %VARPREFIX%Input[i].read(val) != RTT::NoData ) {
+			  u[i] = val;
+		  }
+	}
+
+	/* copy the input vector to the input variables ORO_CREATE_COMPONENT(PID)
+	*/
+	%INPUT_TO_VARIABLE_EQUATIONS%
+}
+
+/* this PRIVATE function uses the output variables to fill the output vector */
+void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
+{
+	/* copy the output variables to the output vector */
+	%VARIABLE_TO_OUTPUT_EQUATIONS%
+
+	/* OROCOS Entry to copy output to port */
+	for (int i=0;i<%NUMBER_OUTPUTS%; ++i)
+	{
+		  %VARPREFIX%Output[i].write(y[i]);
+	}
+}
 
 /* This function calculates the initial equations of the model.
  * These equations are calculated before anything else

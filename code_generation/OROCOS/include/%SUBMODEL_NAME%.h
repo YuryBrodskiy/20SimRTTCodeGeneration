@@ -42,10 +42,13 @@
 #include <rtt/Property.hpp>
 #include <rtt/PropertyBag.hpp>
 #include <rtt/Time.hpp>
+#include <rtt/types/CArrayTypeInfo.hpp>
 
 class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 {
 	public:
+		typedef RTT::types::carray<double> double_array;
+
 		enum stateflags_%SUBMODEL_NAME% {initialrun, mainrun, finished};
 
 		/**
