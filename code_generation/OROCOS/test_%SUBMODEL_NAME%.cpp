@@ -35,7 +35,7 @@
 using namespace Orocos;
 using namespace RTT;
 using namespace std;
-
+using namespace %MODEL_NAME%;
 /* the main function */
 int ORO_main(int argc, char** argv)
 {

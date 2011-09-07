@@ -23,6 +23,7 @@ Target files
 ========
 readme.txt
 CMakeLists.txt
+Makefile
 
 Headers -> in include directory
     %SUBMODEL_NAME%.h 
@@ -61,6 +62,6 @@ How to use
 
 1. Check the orocos target and installation directory in 'CMakeLists.txt'
 2. Check the %VARPREFIX%step_size in the constructor as it might be too low during simulation
-3. Build using cmake and test the component
+3. Build using cmake and test the component -> run make in the project folder
  
 

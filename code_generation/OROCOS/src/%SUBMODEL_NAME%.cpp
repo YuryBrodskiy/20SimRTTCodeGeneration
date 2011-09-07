@@ -23,57 +23,25 @@
 #include <boost/algorithm/string.hpp>
 #include <rtt/marsh/Marshalling.hpp>
 #include <ocl/Component.hpp>
-
+#include <rtt/types/SequenceTypeInfo.hpp>
+#include "Port20Sim.h"
 using namespace Orocos;
 using namespace RTT;
 using namespace std;
 
+namespace %MODEL_NAME%
+{
 const string XXsim_config_xml = "config/%SUBMODEL_NAME%_base_config.xml";
 const string Orocos_config_xml = "config/%SUBMODEL_NAME%_overrides_config.cpf";
 
 
-/**
- * @brief Removes illegal characters from 20sim generated names.
- * This was necessary for interpretation based software, like the TaskBrowser, because they
- * use things as '.' to access sub-properties.
- */
-string replaceIllegalCharacter(string str)
-{
-	using namespace boost;
-	replace_all(str, "\\", "_");
-	replace_all(str, "[", "__");
-	replace_all(str, "]", "__");
-	replace_all(str, ".", "_");
-	replace_all(str, ",", "_");
-	return str;
-}
-
-/**
- * @brief Performs the replaceIllegalCharacter for arrays of names and furthermore
- * checks/prevents duplicates.
- */
-void replaceIllegalCharacters(string array[], unsigned int size)
-{
-	for(unsigned int i = 0; i < size; ++i)
-	{
-		string tmp = replaceIllegalCharacter(array[i]);
-		for(unsigned int j = 0; j < size; ++j)
-		{
-			if(i != j && boost::equals(tmp, array[j]))
-			{
-				log(Info) << "Prevented name clash after illegal character replacement: " << array[i] << "<->" << tmp << endlog();
-				tmp.append(1, '_');
-			}
-		}
-		array[i] = tmp;
-	}
-}
 
 %SUBMODEL_NAME%::%SUBMODEL_NAME%(string name): TaskContext(name, PreOperational), save_properties_on_exit(false)
 {
 	using namespace boost;
 
-	RTT::types::Types()->addType( new RTT::types::CArrayTypeInfo<double_array >("double[]") );
+	RTT::types::Types()->addType(
+				new RTT::types::SequenceTypeInfo<double_matrix>("double[][]"));
 
 	//------------------ 20-sim ------------------------------
 	%VARPREFIX%start_time = %START_TIME%;
@@ -113,27 +81,6 @@ void replaceIllegalCharacters(string array[], unsigned int size)
 
 	setupParametersAndStates();
 
-#if %NUMBER_INPUTS% > 0
-	string inputstr[%NUMBER_INPUTS%] = {%INPUT_NAMES%};
-
-	replaceIllegalCharacters(inputstr, %NUMBER_INPUTS%);
-
-	for (int i=0;i<%NUMBER_INPUTS%; ++i )
-	{
-		this->addPort(inputstr[i],%VARPREFIX%Input[i]).doc("Input port"); //provides()->
-	}
-#endif
-
-#if %NUMBER_OUTPUTS% > 0
-	string outputstr[%NUMBER_OUTPUTS%] = {%OUTPUT_NAMES%};
-
-	replaceIllegalCharacters(outputstr, %NUMBER_OUTPUTS%);
-
-	for (int i=0;i<%NUMBER_OUTPUTS%; ++i )
-	{
-		this->addPort(outputstr[i],%VARPREFIX%Output[i]).doc("Output port"); //provides()->
-	}
-#endif
 }
 
 %SUBMODEL_NAME%::~%SUBMODEL_NAME%(void)
@@ -259,28 +206,27 @@ void %SUBMODEL_NAME%::CopyInputsToVariables ()
 	/* OROCOS Entry to copy port to input array */
 	double val = 0.0;
 
-	for (int i=0;i<%NUMBER_INPUTS%; ++i)
-	{
-		  if ( %VARPREFIX%Input[i].read(val) != RTT::NoData ) {
-			  u[i] = val;
-		  }
+	for (vector<Port20Sim<RTT::InputPort<double_matrix> > >::iterator it =
+			inputPorts.begin(); it != inputPorts.end(); ++it) {
+		double_matrix temp ;
+		if(it->getPort().read(temp)!=RTT::NoData){
+			log(Debug)<<"CopyInputsToVariables"<<endlog();
+		it->setValue(temp);
+		}
 	}
 
-	/* copy the input vector to the input variables ORO_CREATE_COMPONENT(PID)
-	*/
-	%INPUT_TO_VARIABLE_EQUATIONS%
 }
 
 /* this PRIVATE function uses the output variables to fill the output vector */
 void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 {
-	/* copy the output variables to the output vector */
-	%VARIABLE_TO_OUTPUT_EQUATIONS%
 
 	/* OROCOS Entry to copy output to port */
-	for (int i=0;i<%NUMBER_OUTPUTS%; ++i)
-	{
-		  %VARPREFIX%Output[i].write(y[i]);
+	for (vector<Port20Sim<RTT::OutputPort<double_matrix> > >::iterator it =
+			outputPorts.begin(); it != outputPorts.end(); ++it) {
+		double_matrix *temp = it->getValue();
+		it->getPort().write(*temp);
+		delete temp;
 	}
 }
 
@@ -346,121 +292,233 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 {
 	using namespace boost;
 
-	TiXmlDocument doc(XXsim_config_xml);
-	if(! doc.LoadFile() )
-	{
-		log(Error) << "File not found: " << XXsim_config_xml << endlog();
-		return;
-	}
+		TiXmlDocument doc(XXsim_config_xml);
+		if (!doc.LoadFile()) {
+			log(Error) << "File not found: " << XXsim_config_xml << endlog();
+			return;
+		}
 
-	TiXmlHandle hdoc(&doc);
-	TiXmlElement* pElem;
-	TiXmlHandle hRoot(0);
-	int parIndex;
-	const char * kind;
-	TiXmlNode* tNode(NULL);
+		TiXmlHandle hdoc(&doc);
+		TiXmlElement* pElem;
+		TiXmlHandle hRoot(0);
+		TiXmlNode* tNode(NULL);
 
-	hRoot=TiXmlHandle(hdoc.FirstChildElement().Element());
-	pElem = hRoot.FirstChild("modelVariables").FirstChild().Element();
+		hRoot = TiXmlHandle(hdoc.FirstChildElement().Element());
+		pElem = hRoot.FirstChild("modelVariables").FirstChild().Element();
 
-	if(pElem)
-	{
-		while(pElem=pElem->NextSiblingElement())
-		{
-			kind = (tNode = pElem->FirstChild("kind")) == NULL ? NULL : tNode->ToElement()->GetText();
+		if (pElem) {
 
-			if(! (boost::equals(kind, "parameter") || boost::equals(kind, "state")) )
-			{
-				log(Debug) << XXsim_config_xml << " token kind not recognized(" << kind << ")" << endlog();
-				continue;
-			}
+			do {
+				log(Debug) << "Begin of processing the tag" << endlog();
+				log(Debug) << "Read all relevant fields" << endlog();
+				const char * kind =
+						(tNode = pElem->FirstChild("kind")) == NULL ?
+								NULL : tNode->ToElement()->GetText();
+				const char * name =
+						(tNode = pElem->FirstChild("name")) == NULL ?
+								NULL : tNode->ToElement()->GetText();
+				const char * description =
+						(tNode = pElem->FirstChild("description")) == NULL ?
+								" " : tNode->ToElement()->GetText();
+				description =
+						description == NULL || description == "" ?
+								" " : description;
+				const char * container =
+						(tNode = pElem->FirstChild("storage")) == NULL ?
+								NULL :
+								tNode->FirstChild("name")->ToElement()->GetText();
+				const char * strIndex =
+						(tNode = pElem->FirstChild("storage")) == NULL ?
+								NULL :
+								tNode->FirstChild("index")->ToElement()->GetText();
+				const char * strRows =
+						(tNode = pElem->FirstChild("size")) == NULL ?
+								NULL :
+								tNode->FirstChild("rows")->ToElement()->GetText();
+				const char * strColumns =
+						(tNode = pElem->FirstChild("size")) == NULL ?
+								NULL :
+								tNode->FirstChild("columns")->ToElement()->GetText();
+				const char * type =
+						(tNode = pElem->FirstChild("type")) == NULL ?
+								NULL : tNode->ToElement()->GetText();
 
-			//log(Info) << "Found kind: " << kind << endlog();
-
-			const char * name = (tNode = pElem->FirstChild("name")) == NULL ? NULL : tNode->ToElement()->GetText();
-			const char * disc = (tNode = pElem->FirstChild("description")) == NULL ? "" : tNode->ToElement()->GetText();
-			const char * index = (tNode = pElem->FirstChild("storage")) == NULL ? NULL : tNode->FirstChild("index")->ToElement()->GetText();
-			const char * type = (tNode = pElem->FirstChild("type")) == NULL ? NULL : tNode->ToElement()->GetText();
-
-			if(name == NULL || index == NULL || type == NULL)
-			{
-				log(Error) << "XML file: " << XXsim_config_xml << " incorrect." << endlog();
-				continue;
-			}
-
-			if(disc == NULL)
-			{
-				disc = "";
-			}
-
-			parIndex = atoi(index);
-
-			log(Debug) << "Name: " << name << " Disc: " << disc << " Index: " << parIndex << " Type: " << type << endlog();
-
-			if(boost::equals(kind, "parameter"))
-			{
-				RTT::PropertyBag* p_bag(NULL);
-				string cleaned_name;
-
-				typedef split_iterator<const char*> ssi;
-				ssi end;
-				for(ssi it=make_split_iterator(name, first_finder("\\", is_iequal())); it!=end;)
+				log(Debug) << " strings to numbers" << endlog();
+				int index, rows, columns;
+				if (strIndex == NULL)
 				{
-					cleaned_name = replaceIllegalCharacter(copy_range<std::string>(*it));
+					log(Debug)
+							<< "Processing : "
+							<< XXsim_config_xml
+							<< " Link to 20 sim variables incorrectly defined: Index =null \n"
+							<< " The node will be not processed" << endlog();
+					continue;
+				}
+				index = atoi(strIndex);
+				rows = strRows == NULL ? 1 : atoi(strRows);
+				columns = strColumns == NULL ? 1 : atoi(strColumns);
 
-					 // Are we at the end already?
-					if(++it == end)
-					{
-						break; // last name of the string is the name of the property.
-					}
+				log(Debug) << "Name: " << name << " Disc: " << description
+						<< " Index: " << index << " Kind: " << kind << " Type: "
+						<< type << endlog();
+				XXMatrix tempMatrix;
 
-					if(p_bag == NULL)
-					{
-						RTT::Property<PropertyBag>* ppb = dynamic_cast<RTT::Property<PropertyBag>*>(this->getProperty(cleaned_name));
-						if(ppb == NULL)
-						{
-							p_bag = new RTT::PropertyBag;
-							this->addProperty(cleaned_name, *p_bag).doc("Submodel parameters");
-						}
-						else
-						{
-							p_bag = &(ppb->value());
-						}
-					}
-					else
-					{
-						RTT::Property<PropertyBag>* ppb = dynamic_cast<RTT::Property<PropertyBag>*>(p_bag->getProperty(cleaned_name));
-						RTT::PropertyBag* ptmp(NULL);
-						if(ppb == NULL)
-						{
-							ptmp = new RTT::PropertyBag;
-							p_bag->addProperty(cleaned_name, *ptmp).doc("Submodel parameters");
-						}
-						else
-						{
-							ptmp = &(ppb->value());
-						}
-						p_bag = ptmp;
-					}
+				log(Debug) << " Selecting source of data for this node" << endlog();
+				if (boost::equals(container, "V")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &V[index]);
+				} else if (boost::equals(container, "C")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &C[index]);
+				} else if (boost::equals(container, "P")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &P[index]);
+				} else if (boost::equals(container, "I")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &I[index]);
+				} else if (boost::equals(container, "V")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &V[index]);
+				} else if (boost::equals(container, "s")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &s[index]);
+				} else if (boost::equals(container, "R")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &R[index]);
+				} else if (boost::equals(container, "M")) {
+					tempMatrix = M[index];
+				} else if (boost::equals(container, "U")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns, &U[index]);
+				} else if (boost::equals(container, "workarray")) {
+					XXCreateMatrixStruct(&tempMatrix, rows, columns,
+							&workarray[index]);
+				} else {
+					log(Debug) << "Processing : " << XXsim_config_xml
+							<< " Link to 20 sim variables incorrectly defined: "
+							<< container << " The node will be not processed"
+							<< endlog();
+					continue;
 				}
 
-				if(p_bag == NULL)
+
+				log(Debug)<<"select the action based o kind of parameter"<<endlog();
+
+				if (boost::equals(kind, "parameter")) {
+					// create port decorator
+					Port20Sim<RTT::Property<double_matrix> > p_20simport(
+							string(name), string(description), tempMatrix);
+
+					RTT::Property<double_matrix>* p_rttPort;
+					// check if the property should be hierarchical folded
+					RTT::PropertyBag* p_bag(NULL);
+					p_bag = createHierarchicalPropertyBags(name);
+					// create the property
+					p_rttPort = &(p_bag->addProperty(p_20simport.getShortName(),
+							*(p_20simport.getValue())));
+					// save the link for updates
+					p_20simport.setPort(*p_rttPort);
+					propertyPorts.push_back(p_20simport);
+
+				} else if (boost::equals(kind, "state")) {
+					// create port decorator
+					Port20Sim<RTT::Attribute<double_matrix> > p_20simport(
+							string(name), string(description), tempMatrix);
+					RTT::Attribute<double_matrix>* p_rttPort;
+					// create the attribute
+					this->addAttribute(p_20simport.getFullName(),
+							*(p_20simport.getValue()));
+					// no link for updates is required since the property is fixed
+
+
+				} else if (boost::equals(kind, "variable")) {
+					//not implemented yet :)
+					log(Debug)<<"Variables are not exhibited to out side of the component"<<endlog();
+					// Recommend update is to show Interesting variables
+				} else if (boost::equals(kind, "input")) {
+					// create port decorator
+					Port20Sim<RTT::InputPort<double_matrix> > p_20simport(
+							string(name), string(description), tempMatrix);
+					RTT::InputPort<double_matrix> * p_rttPort = new RTT::InputPort<
+							double_matrix>;
+					// create a port
+					this->addPort(p_20simport.getFullName(), *p_rttPort).doc(
+							p_20simport.getDescription());
+					//save link for updates
+					p_20simport.setPort(*p_rttPort);
+					inputPorts.push_back(p_20simport);
+
+				} else if (boost::equals(kind, "output")) {
+					// create port decorator
+					Port20Sim<RTT::OutputPort<double_matrix> > p_20simport(
+							string(name), string(description), tempMatrix);
+					RTT::OutputPort<double_matrix> * p_rttPort =
+							new RTT::OutputPort<double_matrix>;
+					// create a port
+					this->addPort(p_20simport.getFullName(), *p_rttPort).doc(
+							p_20simport.getDescription());
+					//save link for updates
+					p_20simport.setPort(*p_rttPort);
+					outputPorts.push_back(p_20simport);
+
+				} else {
+					log(Debug) << XXsim_config_xml << " token kind not recognized("
+							<< kind << ")" << endlog();
+					continue;
+				}
+				log(Debug) << "End of processing the tag" << endlog();
+			} while (pElem = pElem->NextSiblingElement());
+			log(Debug) << "End of processing the xml" << endlog();
+		}
+}
+
+
+RTT::PropertyBag* %SUBMODEL_NAME%::createHierarchicalPropertyBags(const char * name) {
+	using namespace boost;
+	RTT::PropertyBag* p_bag(NULL);
+	string cleaned_name;
+
+	typedef split_iterator<const char*> ssi;
+	ssi end;
+	for (ssi it = make_split_iterator(name, first_finder("\\", is_iequal()));
+			it != end;) {
+		cleaned_name = Port20Sim<int>::replaceIllegalCharacter(
+				copy_range<std::string>(*it));
+
+		// Are we at the end already?
+		if (++it == end) {
+			break; // last name of the string is the name of the property.
+		}
+
+		if (p_bag == NULL)
+		{
+			RTT::Property<PropertyBag>* ppb = dynamic_cast<RTT::Property<
+					PropertyBag>*>(this->getProperty(cleaned_name));if(ppb == NULL)
+			{
+				p_bag = new RTT::PropertyBag;
+				this->addProperty(cleaned_name, *p_bag).doc("Submodel parameters");
+			}
+			else
+			{
+				p_bag = &(ppb->value());
+			}
+		}
+			else
+			{
+				RTT::Property<PropertyBag>* ppb = dynamic_cast<RTT::Property<PropertyBag>*>(p_bag->getProperty(cleaned_name));
+				RTT::PropertyBag* ptmp(NULL);
+				if(ppb == NULL)
 				{
-					this->addProperty(replaceIllegalCharacter(name),%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
+					ptmp = new RTT::PropertyBag;
+					p_bag->addProperty(cleaned_name, *ptmp).doc("Submodel parameters");
 				}
 				else
 				{
-					p_bag->addProperty(cleaned_name,%VARPREFIX%%XX_PARAMETER_ARRAY_NAME%[parIndex]).doc(disc);
+					ptmp = &(ppb->value());
 				}
-			}
-			else if(boost::equals(kind, "state"))
-			{
-				this->addAttribute(replaceIllegalCharacter(string(name)),%VARPREFIX%%XX_STATE_ARRAY_NAME%[parIndex]);
+				p_bag = ptmp;
 			}
 		}
+	if (p_bag != NULL)
+	{
+		return p_bag;
+	} else {
+		return this->properties();
+
 	}
 }
-
 void %SUBMODEL_NAME%::cleanupPropertyBags(RTT::PropertyBag* p)
 {
 	RTT::PropertyBag::iterator it(p->begin());
@@ -497,5 +555,6 @@ bool %SUBMODEL_NAME%::setPeriod(RTT::Seconds s)
 /* Macro to generate component library
  * Can be modified if the component is part of a big project with other components 
  */
-ORO_CREATE_COMPONENT(%SUBMODEL_NAME%)
+}
+ORO_CREATE_COMPONENT(%MODEL_NAME%::%SUBMODEL_NAME%)
 

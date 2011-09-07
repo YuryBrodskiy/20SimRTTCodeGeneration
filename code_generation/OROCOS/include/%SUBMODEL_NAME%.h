@@ -44,10 +44,14 @@
 #include <rtt/Time.hpp>
 #include <rtt/types/CArrayTypeInfo.hpp>
 
+#include "Port20Sim.h"
+
+namespace %MODEL_NAME%
+{
 class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 {
 	public:
-		typedef RTT::types::carray<double> double_array;
+		typedef std::vector<std::vector<double> > double_matrix;
 
 		enum stateflags_%SUBMODEL_NAME% {initialrun, mainrun, finished};
 
@@ -189,19 +193,23 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * OROCOS Ports for input and ouput
 		 */
 
-		RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
-		RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
+	//	RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
+	//	RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
+		vector<Port20Sim<RTT::InputPort<double_matrix > > >  inputPorts;
+		vector<Port20Sim<RTT::OutputPort<double_matrix > > > outputPorts;
+		vector<Port20Sim<RTT::Property<double_matrix > > >   propertyPorts;
 
 //		/**
 //		 * Property bag for 20sim parameters.
 //		 */
 //		RTT::PropertyBag param_bag;
 
+		RTT::PropertyBag* createHierarchicalPropertyBags( const char * name  );
 		/**
 		 * Save the 20sim parameters on exit?
 		 */
 		bool save_properties_on_exit;
 
 };
-
+}
 #endif	// %SUBMODEL_NAME%_H
