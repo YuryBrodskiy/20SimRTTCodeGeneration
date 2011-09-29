@@ -44,14 +44,15 @@
 #include <rtt/Time.hpp>
 #include <rtt/types/CArrayTypeInfo.hpp>
 
-#include "Port20Sim.h"
+#include "Adapter20Sim.h"
 
 namespace %MODEL_NAME%
 {
+using namespace common20sim;
 class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 {
 	public:
-		typedef std::vector<std::vector<double> > double_matrix;
+		typedef std::vector<double> flat_matrix;
 
 		enum stateflags_%SUBMODEL_NAME% {initialrun, mainrun, finished};
 
@@ -193,11 +194,9 @@ class %SUBMODEL_NAME%: virtual Submodel20sim , public RTT::TaskContext
 		 * OROCOS Ports for input and ouput
 		 */
 
-	//	RTT::InputPort<double> %VARPREFIX%Input[%NUMBER_INPUTS% + 1];
-	//	RTT::OutputPort<double> %VARPREFIX%Output[%NUMBER_OUTPUTS% + 1];
-		vector<Port20Sim<RTT::InputPort<double_matrix > > >  inputPorts;
-		vector<Port20Sim<RTT::OutputPort<double_matrix > > > outputPorts;
-		vector<Port20Sim<RTT::Property<double_matrix > > >   propertyPorts;
+		vector<Adapter20Sim<RTT::InputPort<flat_matrix > > >  inputPorts;
+		vector<Adapter20Sim<RTT::OutputPort<flat_matrix > > > outputPorts;
+		vector<Adapter20Sim<RTT::Property<RTT::types::carray<double> > > >   propertyPorts;
 
 //		/**
 //		 * Property bag for 20sim parameters.

@@ -24,7 +24,8 @@
 #include <rtt/marsh/Marshalling.hpp>
 #include <ocl/Component.hpp>
 #include <rtt/types/SequenceTypeInfo.hpp>
-#include "Port20Sim.h"
+#include <rtt/types/carray.hpp>
+#include "Adapter20Sim.h"
 using namespace Orocos;
 using namespace RTT;
 using namespace std;
@@ -40,8 +41,8 @@ const string Orocos_config_xml = "config/%SUBMODEL_NAME%_overrides_config.cpf";
 {
 	using namespace boost;
 
-	RTT::types::Types()->addType(
-				new RTT::types::SequenceTypeInfo<double_matrix>("double[][]"));
+	RTT::types::Types()->addType(new
+			RTT::types::CArrayTypeInfo<RTT::types::carray<double> >("double[]"));
 
 	//------------------ 20-sim ------------------------------
 	%VARPREFIX%start_time = %START_TIME%;
@@ -206,12 +207,12 @@ void %SUBMODEL_NAME%::CopyInputsToVariables ()
 	/* OROCOS Entry to copy port to input array */
 	double val = 0.0;
 
-	for (vector<Port20Sim<RTT::InputPort<double_matrix> > >::iterator it =
+	for (vector<Adapter20Sim<RTT::InputPort<flat_matrix> > >::iterator it =
 			inputPorts.begin(); it != inputPorts.end(); ++it) {
-		double_matrix temp ;
+		flat_matrix temp ;
 		if(it->getPort().read(temp)!=RTT::NoData){
 			log(Debug)<<"CopyInputsToVariables"<<endlog();
-		it->setValue(temp);
+			it->setValue(temp);
 		}
 	}
 
@@ -222,11 +223,19 @@ void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 {
 
 	/* OROCOS Entry to copy output to port */
-	for (vector<Port20Sim<RTT::OutputPort<double_matrix> > >::iterator it =
+	for (vector<Adapter20Sim<RTT::OutputPort<flat_matrix> > >::iterator it =
 			outputPorts.begin(); it != outputPorts.end(); ++it) {
-		double_matrix *temp = it->getValue();
-		it->getPort().write(*temp);
-		delete temp;
+	//	log(Debug)<<"writing out ="<<it->getValue().address()[1]<<endlog();
+
+		//temp=it->getValue();
+
+		//log(Debug)<<temp.address()[0]<<temp.address()[1]<<temp.address()[2]<<endlog();
+		//log(Debug)<<it->getPort().getName()<<endlog();
+		flat_matrix temp;
+		temp=it->getValue();
+		it->getPort().write(temp);
+
+
 	}
 }
 
@@ -361,30 +370,27 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 				log(Debug) << "Name: " << name << " Disc: " << description
 						<< " Index: " << index << " Kind: " << kind << " Type: "
 						<< type << endlog();
-				XXMatrix tempMatrix;
 
+				common20sim::XVMatrix* tempXVMatrix;
 				log(Debug) << " Selecting source of data for this node" << endlog();
 				if (boost::equals(container, "V")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &V[index]);
+					tempXVMatrix=new common20sim::XVMatrix(V+index, rows, columns);
 				} else if (boost::equals(container, "C")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &C[index]);
+					tempXVMatrix=new common20sim::XVMatrix(C+index, rows, columns);
 				} else if (boost::equals(container, "P")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &P[index]);
+					tempXVMatrix=new common20sim::XVMatrix(P+index, rows, columns);
 				} else if (boost::equals(container, "I")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &I[index]);
-				} else if (boost::equals(container, "V")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &V[index]);
+					tempXVMatrix=new common20sim::XVMatrix(I+index, rows, columns);
 				} else if (boost::equals(container, "s")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &s[index]);
+					tempXVMatrix=new common20sim::XVMatrix(s+index, rows, columns);
 				} else if (boost::equals(container, "R")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &R[index]);
+					tempXVMatrix=new common20sim::XVMatrix(R+index, rows, columns);
 				} else if (boost::equals(container, "M")) {
-					tempMatrix = M[index];
+					tempXVMatrix=new common20sim::XVMatrix(M[index]);
 				} else if (boost::equals(container, "U")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns, &U[index]);
+					tempXVMatrix=new common20sim::XVMatrix(U+index, rows, columns);
 				} else if (boost::equals(container, "workarray")) {
-					XXCreateMatrixStruct(&tempMatrix, rows, columns,
-							&workarray[index]);
+					tempXVMatrix=new common20sim::XVMatrix(workarray+index, rows, columns);
 				} else {
 					log(Debug) << "Processing : " << XXsim_config_xml
 							<< " Link to 20 sim variables incorrectly defined: "
@@ -398,29 +404,23 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 
 				if (boost::equals(kind, "parameter")) {
 					// create port decorator
-					Port20Sim<RTT::Property<double_matrix> > p_20simport(
-							string(name), string(description), tempMatrix);
+					Adapter20Sim<RTT::Property<RTT::types::carray<double> > > p_20simport(
+							string(name), string(description), *tempXVMatrix);
 
-					RTT::Property<double_matrix>* p_rttPort;
+					RTT::Property<RTT::types::carray<double> >* p_rttPort;
 					// check if the property should be hierarchical folded
 					RTT::PropertyBag* p_bag(NULL);
 					p_bag = createHierarchicalPropertyBags(name);
 					// create the property
-					p_rttPort = &(p_bag->addProperty(p_20simport.getShortName(),
-							*(p_20simport.getValue())));
+					//p_rttPort = &(
+					flat_matrix& property = p_20simport.getValue();
+
+					p_bag->addProperty(p_20simport.getShortName(), p_20simport.getLink()->getCArray());
 					// save the link for updates
 					p_20simport.setPort(*p_rttPort);
 					propertyPorts.push_back(p_20simport);
 
 				} else if (boost::equals(kind, "state")) {
-					// create port decorator
-					Port20Sim<RTT::Attribute<double_matrix> > p_20simport(
-							string(name), string(description), tempMatrix);
-					RTT::Attribute<double_matrix>* p_rttPort;
-					// create the attribute
-					this->addAttribute(p_20simport.getFullName(),
-							*(p_20simport.getValue()));
-					// no link for updates is required since the property is fixed
 
 
 				} else if (boost::equals(kind, "variable")) {
@@ -429,10 +429,10 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 					// Recommend update is to show Interesting variables
 				} else if (boost::equals(kind, "input")) {
 					// create port decorator
-					Port20Sim<RTT::InputPort<double_matrix> > p_20simport(
-							string(name), string(description), tempMatrix);
-					RTT::InputPort<double_matrix> * p_rttPort = new RTT::InputPort<
-							double_matrix>;
+					Adapter20Sim<RTT::InputPort<flat_matrix> > p_20simport(
+							string(name), string(description), *tempXVMatrix);
+					RTT::InputPort<flat_matrix> * p_rttPort = new RTT::InputPort<
+							flat_matrix>;
 					// create a port
 					this->addPort(p_20simport.getFullName(), *p_rttPort).doc(
 							p_20simport.getDescription());
@@ -442,10 +442,10 @@ void %SUBMODEL_NAME%::setupParametersAndStates()
 
 				} else if (boost::equals(kind, "output")) {
 					// create port decorator
-					Port20Sim<RTT::OutputPort<double_matrix> > p_20simport(
-							string(name), string(description), tempMatrix);
-					RTT::OutputPort<double_matrix> * p_rttPort =
-							new RTT::OutputPort<double_matrix>;
+					Adapter20Sim<RTT::OutputPort<flat_matrix> > p_20simport(
+							string(name), string(description), *tempXVMatrix);
+					RTT::OutputPort<flat_matrix> * p_rttPort =
+							new RTT::OutputPort<flat_matrix>;
 					// create a port
 					this->addPort(p_20simport.getFullName(), *p_rttPort).doc(
 							p_20simport.getDescription());
@@ -474,7 +474,7 @@ RTT::PropertyBag* %SUBMODEL_NAME%::createHierarchicalPropertyBags(const char * n
 	ssi end;
 	for (ssi it = make_split_iterator(name, first_finder("\\", is_iequal()));
 			it != end;) {
-		cleaned_name = Port20Sim<int>::replaceIllegalCharacter(
+		cleaned_name = Adapter20Sim<int>::replaceIllegalCharacter(
 				copy_range<std::string>(*it));
 
 		// Are we at the end already?

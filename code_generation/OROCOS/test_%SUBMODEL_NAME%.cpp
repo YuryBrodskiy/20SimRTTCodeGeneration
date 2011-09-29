@@ -35,7 +35,7 @@
 using namespace Orocos;
 using namespace RTT;
 using namespace std;
-using namespace %MODEL_NAME%;
+//using namespace %MODEL_NAME%;
 /* the main function */
 int ORO_main(int argc, char** argv)
 {
@@ -46,7 +46,7 @@ int ORO_main(int argc, char** argv)
         	log(Info) << argv[0] << " manually raises LogLevel to 'Info' (5). See also file 'orocos.log'."<<endlog();
     	}
 
-        %SUBMODEL_NAME% my20simSubmodel;
+		%MODEL_NAME%::%SUBMODEL_NAME% my20simSubmodel;
 
         my20simSubmodel.setActivity(new Activity( 2 ));
 

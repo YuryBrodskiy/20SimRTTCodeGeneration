@@ -20,7 +20,7 @@ find_package(OROCOS-RTT REQUIRED ${RTT_HINTS})
 # Defines the orocos_* cmake macros. See that file for additional
 # documentation.
 include(${OROCOS-RTT_USE_FILE_PATH}/UseOROCOS-RTT.cmake)
-
+include(local.cmake)
 
 #OROCOS setup
 set(OROCOS_TARGET $ENV{OROCOS_TARGET})
@@ -52,11 +52,11 @@ endif( OROCOS-RTT_RTT-MARSHALLING_FOUND )
 #Header and Source files used in the component
 SET(COMMON_HEADERS  include/xxfuncs.h   include/xxinteg.h   include/tinyxml.h   include/xxmatrix.h
             include/xxinverse.h include/xxmodel.h   include/MotionProfiles.h    include/tinystr.h
-            include/EulerAngles.h  include/xxtypes.h include/%SUBMODEL_NAME%.h include/Port20Sim.h)
+            include/EulerAngles.h  include/xxtypes.h include/%SUBMODEL_NAME%.h include/Adapter20Sim.h include/XVMatrix.h)
 
 SET(COMMON_SOURCE  src/xxfuncs.cpp src/xxinteg.cpp src/xxinverse.cpp   src/tinyxml.cpp src/tinystr.cpp
             src/xxmatrix.cpp src/EulerAngles.cpp src/MotionProfiles.cpp src/tinyxmlerror.cpp
-            src/tinyxmlparser.cpp src/Port20Sim.cpp)
+            src/tinyxmlparser.cpp src/Adapter20Sim.cpp src/XVMatrix.cpp)
 
 #Executable component and can also be a library usable for orocos deployment
 orocos_component(%SUBMODEL_NAME% src/%SUBMODEL_NAME%.cpp ${COMMON_SOURCE} ${COMMON_HEADERS})
@@ -71,3 +71,4 @@ file(COPY ${CMAKE_SOURCE_DIR}/config DESTINATION ${CMAKE_BINARY_DIR})
 # that it can pick up all above settings.
 #
 orocos_generate_package()
+
