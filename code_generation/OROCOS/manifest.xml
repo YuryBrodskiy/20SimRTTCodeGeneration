@@ -1,5 +1,5 @@
 <package>
-  <description brief="Gain2">
+  <description brief="%MODEL_NAME%_%SUBMODEL_NAME%">
 
      %MODEL_NAME%_%SUBMODEL_NAME%
 
