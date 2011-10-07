@@ -1,15 +1,17 @@
-/*
- * Port20Sim.cpp
- *
- *  Created on: Sep 2, 2011
- *      Author: yury
- */
-
 #include "Adapter20Sim.h"
 
-namespace timeDelay {
+namespace common20sim {
 
+	std::string replaceIllegalCharacter(std::string str)
+	{
+		using namespace boost;
+		replace_all(str, "\\", "_");
+		replace_all(str, "[", "__");
+		replace_all(str, "]", "__");
+		replace_all(str, ".", "_");
+		replace_all(str, ",", "_");
+		return str;
+	}
 
-
-} /* namespace Gain2 */
+}
 

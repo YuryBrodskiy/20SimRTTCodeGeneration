@@ -1,10 +1,3 @@
-/*
- * XVMatrix.cpp
- *
- *  Created on: Sep 7, 2011
- *      Author: yury
- */
-
 #include "XVMatrix.h"
 
 namespace common20sim
@@ -43,20 +36,12 @@ namespace common20sim
    *  it might create a problem for the code that use that matrix
    */
   XVMatrix::~XVMatrix()
-  {
+  {}
 
-// We don't clean sicne the matrix is manged by 20 sim code
-  }
-  void XVMatrix::makeClean(){
-    if (mat)
-        delete mat;
-
-  }
   /**
    *  although the passed by value return is done; carray carry the pointer to the data, so the data still can be modified
    */
-   RTT::types::carray<double>&
-  XVMatrix::getCArray()
+  RTT::types::carray<double>& XVMatrix::getCArray()
   {
 	   mat_carray=RTT::types::carray<double>(mat, size());
 	   return mat_carray;
@@ -65,33 +50,30 @@ namespace common20sim
   /**
    * simple access to the elements of the matrix const
    */
-  double
-  XVMatrix::operator ()(std::size_t row, std::size_t column) const
+  double XVMatrix::operator ()(std::size_t row, std::size_t column) const
   {
     return mat[row * columns + column];
   }
   /**
    * simple access to the elements of the matrix modifiable
    */
-  double &
-  XVMatrix::operator ()(std::size_t row, std::size_t column)
+  double &XVMatrix::operator ()(std::size_t row, std::size_t column)
   {
     return mat[row * columns + column];
   }
   /**
    *  added for compliance with RTT
    */
-   std::size_t
-  XVMatrix::capacity() const
+  std::size_t XVMatrix::capacity() const
   {
     return rows * columns;
   }
 
-  bool
-  XVMatrix::sizeCheck(std::size_t size)
+  bool XVMatrix::sizeCheck(std::size_t size)
   {
     return (size == this->size());
   }
+
   /**
    *  modifying the vector will have no effect on the internal data
    *  all values are copied
@@ -118,11 +100,7 @@ namespace common20sim
      return rows;
    }
 
-
-
-
-  void
-  XVMatrix::setValues(std::vector<double> & inputs)
+  void XVMatrix::setValues(std::vector<double> & inputs)
   {
     if (sizeCheck(inputs.size()))
       {
@@ -134,10 +112,7 @@ namespace common20sim
       }
   }
 
-
-
-  void
-  XVMatrix::setValues(double & inputs, std::size_t size)
+  void XVMatrix::setValues(double & inputs, std::size_t size)
   {
     if (sizeCheck(size))
       {
@@ -149,8 +124,7 @@ namespace common20sim
       }
   }
 
-  void
-  XVMatrix::setValues(RTT::types::carray<double> & inputs)
+  void XVMatrix::setValues(RTT::types::carray<double> & inputs)
   {
     if (sizeCheck(inputs.count()))
       {
