@@ -117,12 +117,18 @@ bool %SUBMODEL_NAME%::configureHook()
 
 	/* copy the inputs */
 	//%VARPREFIX%%XX_TIME% = t;
-
+	
 	/* set the constants */
 	%INITIALIZE_CONSTANTS%
 
 	/* set the parameters */
 	%INITIALIZE_PARAMETERS%
+
+	/*set intial values*/	
+	%INITIALIZE_INITIAL_VALUES%
+	/*set favorite if any*/
+        %INITIALIZE_FAVORITE_PARS%
+  	%INITIALIZE_FAVORITE_VARS%
 
 	/* set the states */
 	%INITIALIZE_STATES%

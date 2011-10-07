@@ -56,7 +56,7 @@ SET(COMMON_HEADERS  include/xxfuncs.h   include/xxinteg.h   include/tinyxml.h   
 
 SET(COMMON_SOURCE  src/xxfuncs.cpp src/xxinteg.cpp src/xxinverse.cpp   src/tinyxml.cpp src/tinystr.cpp
             src/xxmatrix.cpp src/EulerAngles.cpp src/MotionProfiles.cpp src/tinyxmlerror.cpp
-            src/tinyxmlparser.cpp src/Adapter20Sim.cpp src/XVMatrix.cpp)
+            src/tinyxmlparser.cpp src/Adapter20Sim.cpp src/XVmatrix.cpp)
 
 #Executable component and can also be a library usable for orocos deployment
 orocos_component(%SUBMODEL_NAME% src/%SUBMODEL_NAME%.cpp ${COMMON_SOURCE} ${COMMON_HEADERS})
