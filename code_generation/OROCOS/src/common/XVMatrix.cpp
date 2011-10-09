@@ -25,7 +25,8 @@ namespace common20sim
 	/**
 	* shallow copy constructor points to the same memory address
 	*/
-	XVMatrix::XVMatrix(XVMatrix & copy) : mat(copy.mat), rows(copy.rows), columns(copy.columns)
+	XVMatrix::XVMatrix(const XVMatrix & copy) :
+			mat(copy.mat), mat_carray(copy.mat_carray), rows(copy.rows), columns(copy.columns)
 	{
 	}
 	/**
