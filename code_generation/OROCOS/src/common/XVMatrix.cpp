@@ -46,7 +46,16 @@ namespace common20sim
 	   mat_carray=RTT::types::carray<double>(mat, size());
 	   return mat_carray;
   }
+  double XVMatrix::at(std::size_t position) const
+  {
 
+    return mat[position];
+  }
+  double& XVMatrix::at(std::size_t position)
+  {
+
+    return mat[position];
+  }
   /**
    * simple access to the elements of the matrix const
    */
@@ -136,4 +145,15 @@ namespace common20sim
       }
   }
 
+}
+namespace RTT{
+std::ostream& operator<<(std::ostream& os, common20sim::XVMatrix& input)
+{
+  os<<"[ "<<input.at(0);
+  for(int i=1;i<input.size();i++)
+    {
+    os<<", "<<input.at(i);
+    }
+  return os;
+}
 }
