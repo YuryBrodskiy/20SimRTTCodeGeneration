@@ -27,7 +27,7 @@ namespace common20sim
   /**
    * shallow copy constructor points to the same memory address
    */
-  XVMatrix::XVMatrix(XVMatrix & copy) :
+  XVMatrix::XVMatrix(const XVMatrix & copy) :
     mat(copy.mat), rows(copy.rows), columns(copy.columns)
   {
   }
@@ -150,7 +150,7 @@ namespace RTT{
 std::ostream& operator<<(std::ostream& os, common20sim::XVMatrix& input)
 {
   os<<"[ "<<input.at(0);
-  for(int i=1;i<input.size();i++)
+  for(size_t i=1;i<input.size();i++)
     {
     os<<", "<<input.at(i);
     }
