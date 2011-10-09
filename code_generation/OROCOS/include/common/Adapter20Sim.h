@@ -49,7 +49,6 @@ namespace common20sim {
 			_description = copy._description;
 			_data = copy._data;
 			_link = copy._link;
-
 		}
 
 		virtual ~Adapter20Sim()
