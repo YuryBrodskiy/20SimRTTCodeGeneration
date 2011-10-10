@@ -189,6 +189,8 @@ namespace %MODEL_NAME%
 			vector<Adapter20Sim<RTT::Property<RTT::types::carray<double> > > >   propertyPorts;
 
 			RTT::PropertyBag* createHierarchicalPropertyBags( const char * name  );
+		private:
+			 void loadMatrixValue(const char * input,XVMatrix *output);
 
 	};
 

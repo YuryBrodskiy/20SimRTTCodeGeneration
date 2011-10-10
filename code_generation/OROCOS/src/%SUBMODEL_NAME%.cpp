@@ -313,6 +313,9 @@ namespace %MODEL_NAME%
 					const char * name =
 							(tNode = pElem->FirstChild("name")) == NULL ?
 									NULL : tNode->ToElement()->GetText();
+					name =
+							name == NULL || name == "" ?
+									" " : name;
 					const char * description =
 							(tNode = pElem->FirstChild("description")) == NULL ?
 									" " : tNode->ToElement()->GetText();
@@ -339,6 +342,9 @@ namespace %MODEL_NAME%
 							(tNode = pElem->FirstChild("type")) == NULL ?
 									NULL : tNode->ToElement()->GetText();
 
+					const char * value=
+										    (tNode = pElem->FirstChild("value")) == NULL ?
+										        NULL : tNode->ToElement()->GetText();
 					log(Debug) << " strings to numbers" << endlog();
 					int index, rows, columns;
 					if (strIndex == NULL)
@@ -394,7 +400,11 @@ namespace %MODEL_NAME%
 						continue;
 					}
 
-
+					log(Debug)<<"load matrix with parameters from xml"<<endlog();
+										log(Debug)<<"Read from xml values: \t "<<value<<endlog();
+										loadMatrixValue(value,tempXVMatrix);
+										log(Debug)<<"Confirm from XVmatrix: \t "<<*tempXVMatrix<<endlog();
+										log(Debug)<<"select the action based o kind of parameter"<<endlog();
 					log(Debug)<<"select the action based o kind of parameter"<<endlog();
 
 					if (boost::equals(kind, "parameter")) {
@@ -456,7 +466,26 @@ namespace %MODEL_NAME%
 				log(Debug) << "End of processing the xml" << endlog();
 			}
 	}
+	 void %SUBMODEL_NAME%::loadMatrixValue(const char * input,XVMatrix *output)
+	 {
 
+       std::size_t position=0;
+       istringstream iss_input(input);
+
+       do{
+         std::string row;
+         getline(iss_input,row,';');
+         istringstream iss_row(row);
+
+         do{
+           std::string field;
+           getline(iss_row,field,',');
+           output->at(position)=atof(field.c_str());
+           position++;
+         }while(!iss_row.eof());
+
+       }while(!iss_input.eof());
+	 }
 
 	RTT::PropertyBag* %SUBMODEL_NAME%::createHierarchicalPropertyBags(const char * name) {
 		using namespace boost;

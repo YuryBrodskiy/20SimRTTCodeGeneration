@@ -4,7 +4,6 @@
 
 namespace common20sim
 {
-	/* namespace common20sim */
 	/**
 	* Implements constructor that uses provided link to a specific addresss
 	*/
@@ -12,25 +11,30 @@ namespace common20sim
 			mat(mat_source), rows(rows), columns(columns)
 	{
 	}
+
 	/**
 	* default constructor not really usable since the size of the matrix cann't be extended
 	*/
 	XVMatrix::XVMatrix() : mat(0), rows(0), columns(0)
 	{
 	}
+
 	/**
 	* constructor from XXMatrix accessible in 20 sim
 	*/
-	XVMatrix::XVMatrix(XXMatrix & mat_source) : mat(mat_source.mat), rows(mat_source.rows), columns(mat_source.columns)
+	XVMatrix::XVMatrix(XXMatrix & mat_source) :
+			mat(mat_source.mat), rows(mat_source.rows), columns(mat_source.columns)
 	{
 	}
+
 	/**
 	* shallow copy constructor points to the same memory address
 	*/
 	XVMatrix::XVMatrix(const XVMatrix & copy) :
-			mat(copy.mat), mat_carray(copy.mat_carray), rows(copy.rows), columns(copy.columns)
+		mat(copy.mat), mat_carray(copy.mat_carray), rows(copy.rows), columns(copy.columns)
 	{
 	}
+
 	/**
 	*  Note that invoking default the destructor you clean up memory so the matrixes are destroyed thus,
 	*  it might create a problem for the code that use that matrix
@@ -60,6 +64,7 @@ namespace common20sim
 	{
 		return mat[row * columns + column];
 	}
+
 	/**
 	* simple access to the elements of the matrix modifiable
 	*/
@@ -67,6 +72,36 @@ namespace common20sim
 	{
 		return mat[row * columns + column];
 	}
+
+	/**
+	*  added for compliance with RTT
+	*/
+	std::size_t XVMatrix::capacity() const
+	{
+		return rows * columns;
+	}
+
+	double& XVMatrix::at(std::size_t position)
+	{
+		return mat[position];
+	}
+
+	/**
+	* simple access to the elements of the matrix const
+	*/
+	double XVMatrix::operator ()(std::size_t row, std::size_t column) const
+	{
+		return mat[row * columns + column];
+	}
+
+	/**
+	* simple access to the elements of the matrix modifiable
+	*/
+	double &XVMatrix::operator ()(std::size_t row, std::size_t column)
+	{
+		return mat[row * columns + column];
+	}
+
 	/**
 	*  added for compliance with RTT
 	*/
@@ -141,3 +176,17 @@ namespace common20sim
 	}
 
 }
+
+namespace RTT
+{
+	std::ostream& operator<<(std::ostream& os, common20sim::XVMatrix& input)
+	{
+		os << input.at(0);
+		for(size_t i=1;i<input.size();i++)
+		{
+			os << ", " << input.at(i);
+		}
+		return os;
+	}
+}
+
