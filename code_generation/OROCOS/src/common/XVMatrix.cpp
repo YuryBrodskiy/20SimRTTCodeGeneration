@@ -57,31 +57,12 @@ namespace common20sim
 		return *this;
 	}
 
-	/**
-	* simple access to the elements of the matrix const
-	*/
-	double XVMatrix::operator ()(std::size_t row, std::size_t column) const
-	{
-		return mat[row * columns + column];
-	}
-
-	/**
-	* simple access to the elements of the matrix modifiable
-	*/
-	double &XVMatrix::operator ()(std::size_t row, std::size_t column)
-	{
-		return mat[row * columns + column];
-	}
-
-	/**
-	*  added for compliance with RTT
-	*/
-	std::size_t XVMatrix::capacity() const
-	{
-		return rows * columns;
-	}
-
 	double& XVMatrix::at(std::size_t position)
+	{
+		return mat[position];
+	}
+
+	double XVMatrix::at(std::size_t position) const
 	{
 		return mat[position];
 	}
@@ -97,7 +78,7 @@ namespace common20sim
 	/**
 	* simple access to the elements of the matrix modifiable
 	*/
-	double &XVMatrix::operator ()(std::size_t row, std::size_t column)
+	double& XVMatrix::operator ()(std::size_t row, std::size_t column)
 	{
 		return mat[row * columns + column];
 	}

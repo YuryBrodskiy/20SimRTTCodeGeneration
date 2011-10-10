@@ -27,7 +27,7 @@ namespace common20sim {
 	class Adapter20Sim {
 
 	private:
-		T* _port;
+		T* m_port;
 		std::string m_fullName;
 		std::string m_shortName;
 		std::string m_description;
@@ -36,7 +36,7 @@ namespace common20sim {
 
 	public:
 		Adapter20Sim(std::string name, std::string desc, XVMatrix* link, T* port) :
-			_port(port), m_description(desc), m_link(link)
+			m_port(port), m_description(desc), m_link(link)
 		{
 			m_fullName = replaceIllegalCharacter(name);
 			m_shortName = makeShortName(name);
@@ -56,7 +56,7 @@ namespace common20sim {
 
 		Adapter20Sim(const Adapter20Sim& copy)
 		{
-			_port = copy._port;
+			m_port = copy.m_port;
 			m_fullName = copy.m_fullName;
 			m_shortName = copy.m_shortName;
 			m_description = copy.m_description;
@@ -99,7 +99,7 @@ namespace common20sim {
 
 		T* getPort()
 		{
-			return _port;
+			return m_port;
 		}
 
 		void setValue(flat_matrix_t& rsh)
