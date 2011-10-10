@@ -33,6 +33,8 @@ namespace common20sim
 		std::size_t size() const;
 		std::size_t capacity() const;
 
+		XVMatrix& operator=(const XVMatrix& ass);
+
 		double operator() (std::size_t row, std::size_t column) const;
 		double& operator() (std::size_t row, std::size_t column);
 		void setValues(std::vector<double>& inputs);

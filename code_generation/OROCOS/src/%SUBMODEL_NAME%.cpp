@@ -354,6 +354,14 @@ namespace %MODEL_NAME%
 					rows = strRows == NULL ? 1 : atoi(strRows);
 					columns = strColumns == NULL ? 1 : atoi(strColumns);
 
+					if(index == -1 || rows == -1 || columns == -1)
+					{
+						log(Error) << "XML parse error: ";
+						log(Error) << "Name: " << name << " Disc: " << description
+													<< " Index: " << index << " Kind: " << kind << " Type: "
+													<< type << endlog();
+					}
+
 					log(Debug) << "Name: " << name << " Disc: " << description
 							<< " Index: " << index << " Kind: " << kind << " Type: "
 							<< type << endlog();

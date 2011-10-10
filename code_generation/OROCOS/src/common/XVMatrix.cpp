@@ -1,5 +1,7 @@
 #include "XVMatrix.h"
 
+#include <rtt/RTT.hpp>
+
 namespace common20sim
 {
 	/* namespace common20sim */
@@ -43,6 +45,12 @@ namespace common20sim
 	{
 		mat_carray=RTT::types::carray<double>(mat, size());
 		return mat_carray;
+	}
+
+	XVMatrix& XVMatrix::operator=(const XVMatrix& ass)
+	{
+		RTT::log(RTT::Error) << "Assignment operator not implemented.";
+		return *this;
 	}
 
 	/**
