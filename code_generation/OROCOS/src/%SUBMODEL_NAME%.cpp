@@ -43,11 +43,13 @@ namespace %MODEL_NAME%
 
 		initializeComputation();
 
-		std::string path = ros::package::getPath("Case_2D");
-		TSim_config_xml=path+"/config/Case_2D_base_config.xml";
+		std::string path = ros::package::getPath("%SUBMODEL_NAME%");
+		TSim_config_xml=path+"/config/%SUBMODEL_NAME%_base_config.xml";
 
 		this->addProperty("integration_step_size", %VARPREFIX%step_size ).doc("Integration step size.");
 		this->addProperty("configuration_file",TSim_config_xml).doc("Path to configuation xml, relative to run directory");
+		// move to configureHook
+		setPeriod(%VARPREFIX%step_size);
 		setupParametersAndStates();
 
 	}
@@ -599,7 +601,7 @@ namespace %MODEL_NAME%
 		%VARPREFIX%initialize = true;
 
 		//%VARPREFIX%%XX_TIME% = t;
-
+		%INITIALIZE_CONSTANTS%
 		/* set the states */
 		%INITIALIZE_STATES%
 
