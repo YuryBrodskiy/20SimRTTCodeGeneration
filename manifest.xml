@@ -1,0 +1,21 @@
+<package>
+  <description brief="%MODEL_NAME%_%SUBMODEL_NAME%">
+
+     %MODEL_NAME%_%SUBMODEL_NAME%
+
+  </description>
+  <author>%USER_NAME%</author>
+  <license>LGPLv2.1 / BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>none</url>
+  <depend package="rtt"/>
+  <depend package="rtt_rosnode"/>
+  <depend package="rtt_std_msgs"/>
+ <!-- <depend package="rtt_ros_integration_sensor_msgs"/>
+  <depend package="rtt_motion_control_msgs"/>
+  <depend package="YouBot_OODL"/>
+  <depend package="tf" />-->
+
+</package>
+
+
