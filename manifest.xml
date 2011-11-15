@@ -1,7 +1,7 @@
 <package>
-  <description brief="%MODEL_NAME%_%SUBMODEL_NAME%">
+  <description brief="%SUBMODEL_NAME%">
 
-     %MODEL_NAME%_%SUBMODEL_NAME%
+     %SUBMODEL_NAME%
 
   </description>
   <author>%USER_NAME%</author>
