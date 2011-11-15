@@ -617,5 +617,5 @@ namespace %MODEL_NAME%
 /* Macro to generate component library
  * Can be modified if the component is part of a big project with other components 
  */
-ORO_CREATE_COMPONENT(::%MODEL_NAME%::%SUBMODEL_NAME%)
+ORO_CREATE_COMPONENT(%MODEL_NAME%::%SUBMODEL_NAME%)
 
