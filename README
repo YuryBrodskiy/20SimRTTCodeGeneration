@@ -1,0 +1,21 @@
+20-sim has a C-Code Generator which automatically converts a complete 20-sim model or submodel into C-Code.
+
+
+The template for this repository allow to generate code that could be used inside of the OROCOS RTT framework.
+To install the template( copy content of the git repository into Ccode folder )
+ cd %PATH_TO_20_SIM%/Ccode
+ git clone https://YuryBrodskiy@github.com/YuryBrodskiy/20SimRTTCodeGeneration.git
+
+To use the code generation feature in 20-sim go to 'Model->Start Simulator' to open a new simulator window. Then from the simulator window go to menu 'Tools-> Real Time Toolbox -> C-Code Generation' to display a window with list of templates. Choose OROCOS component.
+
+Important element of a generated component is possibility of influence configuration parameters  and communication ports after the code was generated.
+
+The configuration of the created component is described by XML file created at the moment of code generation.
+The configuration  XML contains following:
++ Initial values required to correctly start computation
+	+Initial state of the component
+	+Configuration of the computation
++ Description of the component interface
+	+Input/Output ports -> Data flow communication
+	+Configuration properties -> Runtime introspection, runtime changes of configuration
++ Other information about the computation model, e.g.  physical quantities (not in use at the moment) 
