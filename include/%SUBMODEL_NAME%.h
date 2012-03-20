@@ -27,8 +27,6 @@
 #include "xxmodel.h"
 #include "xxinteg.h"
 
-/* parameter parsing include */
-#include "tinyxml.h"
 
 /* OROCOS include files */
 #include <rtt/TaskContext.hpp>
@@ -44,6 +42,7 @@
 #include <rtt/types/CArrayTypeInfo.hpp>
 
 #include "Adapter20Sim.h"
+#include "XXModelProperties.hpp"
 
 namespace %MODEL_NAME%
 {
@@ -162,20 +161,6 @@ namespace %MODEL_NAME%
 		 */
 		void CopyVariablesToOutputs ();
 
-		/**
-		 * @brief setupParametersAndStates()
-		 * Loads the parameter and state definitions from a 20sim generated xml file.
-		 * Properties can be automatically overridden by an Orocos config xml file.
-		 */
-		void setupParametersAndStates();
-
-		/**
-		 * @brief Helper function to cleanup created property bags.
-		 * @return Deleted any sub property bags.
-		 * @param p - The PropertyBag from which sub property bags should be removed.
-		 * @note - Does not delete any other Property<T>'s.
-		 */
-		void cleanupPropertyBags(RTT::PropertyBag* p);
 
 		%INTEGRATION_METHOD_NAME% myintegmethod; ///< pointer to the integration method for this submodel
 
@@ -183,16 +168,20 @@ namespace %MODEL_NAME%
 		 * OROCOS Ports for input and ouput
 		 */
 
-		vector<Adapter20Sim<RTT::InputPort<flat_matrix_t > > > inputPorts;
-		vector<Adapter20Sim<RTT::OutputPort<flat_matrix_t > > > outputPorts;
-		vector<Adapter20Sim<RTT::Property<RTT::types::carray<double> > > > propertyPorts;
+		vector< Adapter20Sim<RTT::InputPort<flat_matrix_t > > > inputPorts;
+		vector< Adapter20Sim<RTT::OutputPort<flat_matrix_t > > > outputPorts;
+		vector< Adapter20Sim<RTT::Property<RTT::types::carray<double> > > > propertyPorts;
 
-		RTT::PropertyBag* createHierarchicalPropertyBags( const char * name );
+		XXModelProperties m_model_properties;
+
 	private:
-		void loadMatrixValue(const char * input,XVMatrix *output);
+		void setupComponentInterface();
+		void setupComputation();
 		bool initializeComputation();
-		string TSim_config_xml;
+		RTT::PropertyBag* createPropertyBags(std::string name, RTT::PropertyBag* head);
+		void cleanupPropertyBags(RTT::PropertyBag* p);
 
+		std::string xml_config_file;
 	};
 
 }
