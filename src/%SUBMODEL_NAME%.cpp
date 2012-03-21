@@ -306,7 +306,7 @@ namespace %MODEL_NAME%
         throw new std::out_of_range("" + pps[i].name);
 
       // Copy to XXData -> double*
-      memcpy(pps[i].storage.mat, &pps[i].values[0], pps[i].values.size()*sizeof(double));
+      memcpy(pps[i].storage.mat, pps[i].values.data(), pps[i].values.size()*sizeof(double));
     }
 
 		/* end of initialization phase */
@@ -367,7 +367,7 @@ namespace %MODEL_NAME%
 
     if(found != string::npos)
     {
-      std::string sub_name(name, found);
+      std::string sub_name(name, 0, found);
       sub_name = replaceIllegalCharacter(sub_name);
 
       if(head == NULL)

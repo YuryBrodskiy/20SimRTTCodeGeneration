@@ -47,11 +47,11 @@ namespace common20sim
         const char * name = (tNode = pElem->FirstChild("name")) == NULL ?
             NULL : tNode->ToElement()->GetText();
 
-        if(name == NULL || !std::string(name).compare("")) //@todo FIXME!
+        if(m.type != INTERNAL && (name == NULL || !std::string(name).compare(""))) 
         {
           throw std::invalid_argument("modelVariable name was NULL or empty.");
         }
-        m.name = name;
+        m.name = (name == NULL) ? std::string("") : name; // names may be empty
 
         const char * description = (tNode = pElem->FirstChild("description")) == NULL ?
             " " : tNode->ToElement()->GetText();
@@ -248,9 +248,9 @@ namespace common20sim
     }
     else
     {
-      throw std::invalid_argument("Kind not recognized");
+      log(Error) << "Kind(" << type << ") not recognized." << endlog();
+      return INTERNAL;
     }
-    return UNKNOWN;
   }
 
   double* XXModelProperties::parseContainer(std::string container)

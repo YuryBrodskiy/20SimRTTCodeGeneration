@@ -27,8 +27,6 @@ namespace common20sim {
 	class Adapter20Sim {
 
 	public:
-		typedef boost::shared_ptr<Adapter20Sim<T> > ptr_t;
-
 		Adapter20Sim(XVMatrix mat, T* port) :
 			m_port(port), m_matrix(mat), m_xx_data(mat.storage.mat)
 		{
@@ -112,14 +110,15 @@ namespace common20sim {
 
 		void copyPortToVariable()
 		{
-		  if(m_port_data.data.size() == m_size);
-		    memcpy(m_xx_data, &m_port_data.data[0], m_size * sizeof(double));
+		  if(m_port_data.data.size() == m_size)
+		    memcpy(m_xx_data, m_port_data.data.data(), m_size * sizeof(double));
+		  //@todo Add exception?
 		}
 
 		void copyVariableToPort()
 		{
-		  if(m_port_data.data.size() == m_size);
-        memcpy(&m_port_data.data[0], m_xx_data, m_size * sizeof(double));
+		  if(m_port_data.data.size() == m_size)
+                    memcpy(m_port_data.data.data(), m_xx_data, m_size * sizeof(double));
 		}
 
 	private:
