@@ -303,7 +303,7 @@ namespace %MODEL_NAME%
     for(unsigned int i = 0; i < pps.size(); ++i)
     {
       if( static_cast<unsigned int>(pps[i].storage.rows * pps[i].storage.columns) != pps[i].values.size())
-        throw new std::out_of_range("" + pps[i].name);
+        throw std::out_of_range("" + pps[i].name);
 
       // Copy to XXData -> double*
       memcpy(pps[i].storage.mat, pps[i].values.data(), pps[i].values.size()*sizeof(double));

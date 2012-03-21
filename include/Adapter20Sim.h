@@ -71,6 +71,7 @@ namespace common20sim {
 
 		virtual ~Adapter20Sim()
 		{
+         assert(m_xx_data == m_matrix.mat);
 		}
 
 		std::string getFullName()
