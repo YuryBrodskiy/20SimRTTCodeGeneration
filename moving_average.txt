@@ -1,0 +1,35 @@
+/**
+* Code for implementing moving average elapsed time measurement functionality in an Orocos TaskContext.
+*/
+
+//INCLUDE:
+
+#include <rtt/os/TimeService.hpp>
+#include <rtt/Time.hpp>
+
+private:
+	RTT::Seconds ca;
+	unsigned int ca_counter;
+
+
+//SOURCE:
+
+constructor:
+ca = 0;
+ca_counter = 0;
+
+updateHook()
+{
+	using namespace RTT::os;
+	TimeService::ticks timestamp = TimeService::Instance()->getTicks();
+
+	// Do all stuff
+
+	Seconds elapsed = TimeService::Instance()->secondsSince( timestamp );	
+	ca = ca + (elapsed - ca) / (++ca_counter);
+}
+
+stopHook()
+{
+	log(Info) << "Cumulative average updateHook: " << ca << endlog();
+} 
