@@ -41,7 +41,8 @@ namespace common20sim {
 			}
 			else
 			{
-				log(Warning) << "XXMatrix settings unknown." << endlog();
+				log(Error) << "XXMatrix settings unknown." << endlog();
+				throw std::out_of_range("XXMatrix size unknown.");
 			}
 
 			assert(m_xx_data != NULL);
@@ -71,7 +72,7 @@ namespace common20sim {
 
 		virtual ~Adapter20Sim()
 		{
-         assert(m_xx_data == m_matrix.mat);
+         assert(m_xx_data == m_matrix.storage.mat);
 		}
 
 		std::string getFullName()
@@ -89,17 +90,17 @@ namespace common20sim {
 			return m_matrix.description;
 		}
 
-		inline flat_matrix_t& getPortData()
+		flat_matrix_t& getPortData()
 		{
 		  return m_port_data;
 		}
 
-		inline double* getXXData()
+		double* getXXData()
 		{
 		  return m_xx_data;
 		}
 
-		inline unsigned int getSize()
+		std::size_t getSize()
 		{
 		  return m_size;
 		}
@@ -113,13 +114,16 @@ namespace common20sim {
 		{
 		  if(m_port_data.data.size() == m_size)
 		    memcpy(m_xx_data, m_port_data.data.data(), m_size * sizeof(double));
-		  //@todo Add exception?
+		  else
+				throw std::out_of_range("Input data size does not match variable data size.");
 		}
 
 		void copyVariableToPort()
 		{
 		  if(m_port_data.data.size() == m_size)
-                    memcpy(m_port_data.data.data(), m_xx_data, m_size * sizeof(double));
+      	memcpy(m_port_data.data.data(), m_xx_data, m_size * sizeof(double));
+			else
+				throw std::out_of_range("Variable data size does not match port data size.");
 		}
 
 	private:
@@ -131,7 +135,6 @@ namespace common20sim {
 
     flat_matrix_t m_port_data; // from/to ports
     XXDouble* m_xx_data; // 20sim internal matrix
-    unsigned int m_size;
-
+    std::size_t m_size;
 	};
 }

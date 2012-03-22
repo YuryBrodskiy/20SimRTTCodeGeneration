@@ -104,10 +104,11 @@ namespace common20sim
             " Index: " << index << endlog();
       }
     }
-    catch(std::invalid_argument& e)
+    catch(std::exception& e)
     {
       std::stringstream s;
       s << "Parse error: " << e.what() << "\nTrace: " << *pElem;
+      log(Error) << s.str() << endlog();
       throw std::invalid_argument(s.str());
     }
 
@@ -248,7 +249,7 @@ namespace common20sim
     }
     else
     {
-      log(Error) << "Kind(" << type << ") not recognized." << endlog();
+      log(Warning) << "Kind(" << type << ") not recognized, therefore set to INTERNAL." << endlog();
       return INTERNAL;
     }
   }

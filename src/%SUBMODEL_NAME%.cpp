@@ -26,6 +26,7 @@
 #include <rtt/types/SequenceTypeInfo.hpp>
 #include <rtt/types/carray.hpp>
 #include <ros/package.h>
+//#include <rtt/Logger.hpp>
 
 using namespace Orocos;
 using namespace RTT;
@@ -39,6 +40,9 @@ namespace %MODEL_NAME%
 	{
 		using namespace boost;
 
+		//RTT::Logger* l = RTT::Logger::Instance();
+		//l->setLogLevel(RTT::Logger::Debug);
+
 		setupComputation();
 
 		xml_config_file = ros::package::getPath("%SUBMODEL_NAME%");
@@ -47,11 +51,13 @@ namespace %MODEL_NAME%
     try
     {
       m_model_properties.load(xml_config_file);
-    }catch(std::invalid_argument& e)
+      log(Info) << "Loaded XXModelProperties" << endlog();
+    }catch(std::exception& e)
     {
       log(Error) << e.what() << endlog();
-      this->error();
-      return;
+      this->exception();
+			log(Error) << e.what() << endlog();
+      throw(e);
     }
 
 		this->addProperty("integration_step_size", %VARPREFIX%step_size ).doc("Integration step size.");
@@ -111,6 +117,7 @@ namespace %MODEL_NAME%
       {
         log(Warning) << "OutputPort (" << outputPorts[i].getFullName() << ") not connected." << endlog();
       }
+      outputPorts[i].getPort()->setDataSample( outputPorts[i].getValues() );
     }
 
 		/* calculate initial and static equations */
@@ -161,12 +168,14 @@ namespace %MODEL_NAME%
 	void %SUBMODEL_NAME%::CopyInputsToVariables ()
 	{
 		/* OROCOS Entry to copy port to input array */
-	  for(unsigned int i = 0; i < inputPorts.size(); ++i)
+    for (vector<Adapter20Sim<RTT::InputPort<flat_matrix_t> > >::iterator it =
+				inputPorts.begin(); it != inputPorts.end(); ++it)
 	  {
-	    if(inputPorts[i].getPort()->read(inputPorts[i].getPortData())!=RTT::NoData)
-      {
-	      inputPorts[i].copyPortToVariable();
-      }
+			if(it->getPort()->read(it->getPortData())!=RTT::NoData)
+			{
+				it->copyPortToVariable();
+			}
+
 	  }
 	}
 
@@ -174,10 +183,11 @@ namespace %MODEL_NAME%
 	void %SUBMODEL_NAME%::CopyVariablesToOutputs ()
 	{
 		/* OROCOS Entry to copy output to port */
-	  for(unsigned int i = 0; i < outputPorts.size(); ++i)
+	  for (vector<Adapter20Sim<RTT::OutputPort<flat_matrix_t> > >::iterator it =
+				outputPorts.begin(); it != outputPorts.end(); ++it)
 	  {
-	    outputPorts[i].copyVariableToPort();
-	    outputPorts[i].getPort()->write(outputPorts[i].getPortData());
+			it->copyVariableToPort();
+			it->getPort()->write(it->getPortData());
 	  }
 	}
 
@@ -288,14 +298,40 @@ namespace %MODEL_NAME%
 
 		/* initialization phase (allocating memory) */
 		%VARPREFIX%initialize = true;
+//CONSTANTS
+%INITIALIZE_CONSTANTS%
 
-		//%VARPREFIX%%XX_TIME% = t;
-		%INITIALIZE_CONSTANTS%
+//PARAMETERS
+%INITIALIZE_PARAMETERS%
+
+//INITIAL VALUES
+%INITIALIZE_INITIAL_VALUES%
+
+//MATRICES
+%INITIALIZE_MATRICES%
+
+//STATES
+%INITIALIZE_STATES%
+
+//INITIALIZE_DEPSTATES
+//INITIALIZE_ALGLOOPS
+//INITIALIZE_CONSTRAINTS%
+
+//INPUTS
+%INITIALIZE_INPUTS%
+
+//OUTPUTS
+%INITIALIZE_OUTPUTS%
+
+//INITIALIZE_FAVORITE_PARS
+//INITIALIZE_FAVORITE_VARS
+
+		//INITIALIZE_CONSTANTS%
 		/* set the states */
-		%INITIALIZE_STATES%
+		//INITIALIZE_STATES%
 
 		/* set the matrices */
-		%INITIALIZE_MATRICES%
+		//INITIALIZE_MATRICES%
 
 		// overload INITIALIZE_* with values from xml
     std::vector<XVMatrix> pps = m_model_properties.getPortsAndProperties();
@@ -317,9 +353,12 @@ namespace %MODEL_NAME%
   void %SUBMODEL_NAME%::setupComponentInterface()
   {
     std::vector<XVMatrix> pps = m_model_properties.getPortsAndProperties();
+    log(Info) << "Number of ports and properties in XML: " << pps.size() << endlog();
 
     for(unsigned int i = 0; i < pps.size(); ++i)
     {
+      log(Debug) << "Name: " << pps[i].name << " CEType: " << pps[i].type << " Storage: " << pps[i].storage.mat << " Rows: " << pps[i].storage.rows << " Columns: " << pps[i].storage.columns << endlog();
+
       switch(pps[i].type)
       {
         case(INPUT):
@@ -357,6 +396,9 @@ namespace %MODEL_NAME%
         }
       }
     }
+	log(Info) << "Total input ports: " << inputPorts.size() << endlog();
+	log(Info) << "Total output ports: " << outputPorts.size() << endlog();
+	log(Info) << "Total properties: " << propertyPorts.size() << endlog();
   }
 
   RTT::PropertyBag* %SUBMODEL_NAME%::createPropertyBags(std::string name, RTT::PropertyBag* head)
