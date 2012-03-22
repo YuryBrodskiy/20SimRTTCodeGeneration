@@ -55,8 +55,8 @@ namespace %MODEL_NAME%
     }catch(std::exception& e)
     {
       log(Error) << e.what() << endlog();
+			this->error();
       this->exception();
-			log(Error) << e.what() << endlog();
       throw(e);
     }
 
