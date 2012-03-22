@@ -117,7 +117,7 @@ namespace %MODEL_NAME%
       {
         log(Warning) << "OutputPort (" << outputPorts[i].getFullName() << ") not connected." << endlog();
       }
-      outputPorts[i].getPort()->setDataSample( outputPorts[i].getValues() );
+      outputPorts[i].getPort()->setDataSample( outputPorts[i].getPortData() );
     }
 
 		/* calculate initial and static equations */
