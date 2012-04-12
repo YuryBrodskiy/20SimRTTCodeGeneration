@@ -56,7 +56,7 @@ namespace %MODEL_NAME%
 		/**
 		 * %SUBMODEL_NAME% constructor
 		 */
-		%SUBMODEL_NAME%(string name = "%SUBMODEL_NAME%");
+		%SUBMODEL_NAME%(std::string name = "%SUBMODEL_NAME%");
 
 		/**
 		 * %SUBMODEL_NAME% destructor
@@ -168,9 +168,9 @@ namespace %MODEL_NAME%
 		 * OROCOS Ports for input and ouput
 		 */
 
-		vector< Adapter20Sim<RTT::InputPort<flat_matrix_t > > > inputPorts;
-		vector< Adapter20Sim<RTT::OutputPort<flat_matrix_t > > > outputPorts;
-		vector< Adapter20Sim<RTT::Property<RTT::types::carray<double> > > > propertyPorts;
+		std::vector< Adapter20Sim<RTT::InputPort<flat_matrix_t > > > inputPorts;
+		std::vector< Adapter20Sim<RTT::OutputPort<flat_matrix_t > > > outputPorts;
+		std::vector< Adapter20Sim<RTT::Property<RTT::types::carray<double> > > > propertyPorts;
 
 		XXModelProperties m_model_properties;
 
