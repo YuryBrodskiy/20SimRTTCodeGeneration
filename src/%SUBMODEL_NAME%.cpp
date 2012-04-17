@@ -292,48 +292,45 @@ namespace %MODEL_NAME%
     %VARPREFIX%workarray = new XXDouble[%WORK_ARRAY_SIZE% + 1];
   }
 
-	bool %SUBMODEL_NAME%::initializeComputation()
-	{
-	  myintegmethod.Initialize(this);
+  bool %SUBMODEL_NAME%::initializeComputation()
+  {
+	 myintegmethod.Initialize(this);
 
-		/* initialization phase (allocating memory) */
-		%VARPREFIX%initialize = true;
-//CONSTANTS
-%INITIALIZE_CONSTANTS%
+	 /* initialization phase (allocating memory) */
+	 %VARPREFIX%initialize = true;
+    //CONSTANTS
+    %INITIALIZE_CONSTANTS%
 
-//PARAMETERS
-%INITIALIZE_PARAMETERS%
+    //PARAMETERS
+    %INITIALIZE_PARAMETERS%
 
-//INITIAL VALUES
-%INITIALIZE_INITIAL_VALUES%
+    //INITIAL VALUES
+    %INITIALIZE_INITIAL_VALUES%
 
-//MATRICES
-%INITIALIZE_MATRICES%
+    //MATRICES
+    %INITIALIZE_MATRICES%
 
-//STATES
-%INITIALIZE_STATES%
+    //INITIALIZE_DEPSTATES
+    //INITIALIZE_ALGLOOPS
+    //INITIALIZE_CONSTRAINTS%
 
-//INITIALIZE_DEPSTATES
-//INITIALIZE_ALGLOOPS
-//INITIALIZE_CONSTRAINTS%
+    //INPUTS
+    %INITIALIZE_INPUTS%
 
-//INPUTS
-%INITIALIZE_INPUTS%
+    //OUTPUTS
+    %INITIALIZE_OUTPUTS%
 
-//OUTPUTS
-%INITIALIZE_OUTPUTS%
+    //INITIALIZE_FAVORITE_PARS
+    //INITIALIZE_FAVORITE_VARS
 
-//INITIALIZE_FAVORITE_PARS
-//INITIALIZE_FAVORITE_VARS
+    //INITIALIZE_CONSTANTS%
+    /* set the states */
+    //INITIALIZE_STATES%
 
-		//INITIALIZE_CONSTANTS%
-		/* set the states */
-		//INITIALIZE_STATES%
+    /* set the matrices */
+    //INITIALIZE_MATRICES%
 
-		/* set the matrices */
-		//INITIALIZE_MATRICES%
-
-		// overload INITIALIZE_* with values from xml
+    // overload INITIALIZE_* with values from xml
     std::vector<XVMatrix> pps = m_model_properties.getPortsAndProperties();
 
     for(unsigned int i = 0; i < pps.size(); ++i)
@@ -345,10 +342,13 @@ namespace %MODEL_NAME%
       memcpy(pps[i].storage.mat, pps[i].values.data(), pps[i].values.size()*sizeof(double));
     }
 
-		/* end of initialization phase */
-		%VARPREFIX%initialize = false;
-		return %VARPREFIX%initialize;
-	}
+    //STATES - do NOT move this line up!
+    %INITIALIZE_STATES%
+
+    /* end of initialization phase */
+    %VARPREFIX%initialize = false;
+    return %VARPREFIX%initialize;
+  }
 
   void %SUBMODEL_NAME%::setupComponentInterface()
   {
