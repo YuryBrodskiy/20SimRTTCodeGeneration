@@ -62,7 +62,6 @@ namespace %MODEL_NAME%
 
 		this->addProperty("integration_step_size", %VARPREFIX%step_size ).doc("Integration step size.");
 		this->addProperty("configuration_file",xml_config_file).doc("Path to configuation xml, relative to run directory");
-		setPeriod(%VARPREFIX%step_size);
 
 		setupComponentInterface();
 
