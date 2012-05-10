@@ -97,6 +97,17 @@ namespace %MODEL_NAME%
 	/* the initialization function for submodel */
 	bool %SUBMODEL_NAME%::startHook()
 	{
+      if(TaskContext::getPeriod() == 0.0)
+      {
+         log(Warning) << "No period set, setting integration_step_size as Activity period." << endlog();
+         setPeriod(%VARPREFIX%step_size);
+      }
+      else
+      {
+         // Sync period and integration_step_size;
+         %VARPREFIX%step_size = TaskContext::getPeriod(); 
+      }
+
 		if(! TaskContext::startHook())
 		{
 			return false;
