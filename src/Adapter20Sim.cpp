@@ -1,5 +1,7 @@
 #include "Adapter20Sim.h"
 
+#include <boost/algorithm/string.hpp>
+
 namespace common20sim {
 
 	std::string replaceIllegalCharacter(std::string str)

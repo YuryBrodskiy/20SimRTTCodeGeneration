@@ -53,9 +53,9 @@ ENDIF(${OROCOS_TARGET} MATCHES xenomai)
 #Add include directories
 INCLUDE_DIRECTORIES(include)
 INCLUDE_DIRECTORIES(include/common)
+INCLUDE_DIRECTORIES(include/config)
 
 ADD_SUBDIRECTORY(src)
-#ADD_SUBDIRECTORY(test)
 
 #
 orocos_generate_package()

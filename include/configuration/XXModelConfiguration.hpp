@@ -4,32 +4,34 @@
 #include <string>
 #include <stdexcept>
 
-#include "XVMatrix.hpp"
-#include "xxmodel.h"
+#include "configuration/XVMatrix.hpp"
+#include "common/xxmodel.h"
 
 namespace common20sim
 {
-  class XXModelProperties
+  class XXModelConfiguration
   {
     public:
-      XXModelProperties(Submodel20sim* model);
+      XXModelConfiguration(Submodel20sim* model);
 
       /**
        * @brief Reads the XML property files.
        */
       void load(std::string file) throw(std::invalid_argument);
 
-      std::vector<XVMatrix>& getPortsAndProperties();
+      std::vector<XVMatrix>& getConfiguration();
+
+      ~XXModelConfiguration();
 
     protected:
-      CEType parseCEType(std::string type);
+      XXType parseXXType(std::string type);
       std::vector<double> parseValues( std::string values_str, unsigned int rows, unsigned int columns);
       std::vector<double> parseRowValues(std::string row, unsigned int columns);
       double* parseContainer(std::string container);
 
     private:
-      std::vector<XVMatrix> m_ports_and_properties;
+      std::vector<XVMatrix> m_configuration;
       Submodel20sim* m_model;
-      XXModelProperties();
+      XXModelConfiguration();
   };
 }

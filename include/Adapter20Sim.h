@@ -1,9 +1,10 @@
 #pragma once
 
-#include <boost/algorithm/string.hpp>
-#include "vector"
-#include "string"
-#include "XVMatrix.hpp"
+#include <vector>
+#include <string>
+
+#include "configuration/XVMatrix.hpp"
+
 #include <std_msgs/Float64MultiArray.h>
 #include <rtt/RTT.hpp>
 
@@ -27,7 +28,7 @@ namespace common20sim {
 	class Adapter20Sim {
 
 	public:
-		Adapter20Sim(XVMatrix mat, T* port) :
+		Adapter20Sim(XVMatrix& mat, T* port) :
 			m_port(port), m_matrix(mat), m_xx_data(mat.storage.mat)
 		{
 			m_full_name = replaceIllegalCharacter(m_matrix.name);
@@ -131,7 +132,7 @@ namespace common20sim {
     std::string m_full_name;
     std::string m_short_name;
 
-    XVMatrix m_matrix;
+    XVMatrix& m_matrix;
 
     flat_matrix_t m_port_data; // from/to ports
     XXDouble* m_xx_data; // 20sim internal matrix

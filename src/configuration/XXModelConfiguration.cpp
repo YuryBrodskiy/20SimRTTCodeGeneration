@@ -1,22 +1,37 @@
-#include "XXModelProperties.hpp"
+#include "configuration/XXModelConfiguration.hpp"
 
 #include <cstdlib>
-#include <rtt/RTT.hpp>
 #include <boost/algorithm/string.hpp>
 #include <sstream>
+#include <cmath>
 
 /* parameter parsing include */
-#include "tinyxml.h"
+#include "configuration/tinyxml.h"
+
+#define CONFIG_RTT 1
+
+#ifndef CONFIG_RTT
+  class dev_null : public std::streambuf
+  {
+    int overflow(int c) { return c; }
+  };
+  #define log(Debug) dev_null
+  #define log(Error) std::cerr
+  #define log(Warning) std::cout
+  #define endlog() std::endl
+#else
+#include <rtt/RTT.hpp>
+using namespace RTT;
+#endif
 
 namespace common20sim
 {
-  using namespace RTT;
 
-  XXModelProperties::XXModelProperties(Submodel20sim* model) : m_model(model)
+  XXModelConfiguration::XXModelConfiguration(Submodel20sim* model) : m_model(model)
   { }
 
   //@todo Add exceptions for Error's
-  void XXModelProperties::load(std::string file) throw(std::invalid_argument)
+  void XXModelConfiguration::load(std::string file) throw(std::invalid_argument)
   {
     TiXmlDocument doc(file);
     if (!doc.LoadFile())
@@ -42,12 +57,12 @@ namespace common20sim
         log(Debug) << "Read all relevant fields" << endlog();
         const char * kind = (tNode = pElem->FirstChild("kind")) == NULL ?
             NULL : tNode->ToElement()->GetText();
-        m.type = parseCEType(kind);
+        m.type = parseXXType(kind);
 
         const char * name = (tNode = pElem->FirstChild("name")) == NULL ?
             NULL : tNode->ToElement()->GetText();
 
-        if(m.type != INTERNAL && (name == NULL || !std::string(name).compare(""))) 
+        if(m.type != INTERNAL && m.type != VARIABLE && m.type != STATE && (name == NULL || !std::string(name).compare("")))
         {
           throw std::invalid_argument("modelVariable name was NULL or empty.");
         }
@@ -96,10 +111,10 @@ namespace common20sim
             NULL : tNode->ToElement()->GetText();
         m.values = parseValues(values, rows, columns);
 
-        m_ports_and_properties.push_back(m);
+        m_configuration.push_back(m);
 
         log(Debug) << "Name: " << m.name << " Disc: " << m.description <<
-            " CEType: " << m.type << " Storage: " << m.storage.mat <<
+            " XXType: " << m.type << " Storage: " << m.storage.mat <<
             " Kind: " << kind << " Type: " << type <<
             " Index: " << index << endlog();
       }
@@ -116,7 +131,7 @@ namespace common20sim
 
   }
 
-  std::vector<double> XXModelProperties::parseValues( std::string values_str, unsigned int rows, unsigned int columns)
+  std::vector<double> XXModelConfiguration::parseValues( std::string values_str, unsigned int rows, unsigned int columns)
   {
     using namespace std;
     vector<double> values;
@@ -171,7 +186,7 @@ namespace common20sim
     return values;
   }
 
-  std::vector<double> XXModelProperties::parseRowValues(std::string row, unsigned int columns)
+  std::vector<double> XXModelConfiguration::parseRowValues(std::string row, unsigned int columns)
   {
 	    using namespace std;
 	  	vector<double> values;
@@ -225,7 +240,7 @@ namespace common20sim
 		return values;
   }
 
-  CEType XXModelProperties::parseCEType(std::string type)
+  XXType XXModelConfiguration::parseXXType(std::string type)
   {
     if (boost::iequals(type, "parameter"))
     {
@@ -233,11 +248,11 @@ namespace common20sim
     }
     else if (boost::iequals(type, "state"))
     {
-      return INTERNAL;
+      return STATE;
     }
     else if (boost::iequals(type, "variable"))
     {
-      return INTERNAL;
+      return VARIABLE;
     }
     else if (boost::iequals(type, "input"))
     {
@@ -254,7 +269,7 @@ namespace common20sim
     }
   }
 
-  double* XXModelProperties::parseContainer(std::string container)
+  double* XXModelConfiguration::parseContainer(std::string container)
   {
     log(Debug) << " Selecting source of data for this node" << endlog();
     //@todo matrix + index
@@ -302,8 +317,13 @@ namespace common20sim
     }
   }
 
-  std::vector<XVMatrix>& XXModelProperties::getPortsAndProperties()
+  std::vector<XVMatrix>& XXModelConfiguration::getConfiguration()
   {
-    return m_ports_and_properties;
+    return m_configuration;
+  }
+
+  XXModelConfiguration::~XXModelConfiguration()
+  {
+
   }
 }

@@ -6,18 +6,15 @@
 
 namespace common20sim
 {
-
-  enum CEType {UNKNOWN, INPUT, OUTPUT, PARAMETER, INTERNAL};
+  enum XXType {UNKNOWN, INPUT, OUTPUT, PARAMETER, STATE, VARIABLE, INTERNAL};
 
   typedef struct _XVMatrix
   {
       std::string name;
       std::string description;
-      CEType type;
+      XXType type;
 
       XXMatrix storage;
       std::vector<double> values;
   } XVMatrix;
-
-
 }
